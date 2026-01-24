@@ -9,4 +9,8 @@ class Home extends Controller
     function index() {
         return view ('home');
     }
+    
+    function about() {
+        return view ('about');
+    }
 }
