@@ -23,3 +23,28 @@
     RewriteCond %{REQUEST_FILENAME} !-f
     RewriteRule ^ index.php [L]
 </IfModule>
+
+<IfModule mod_headers.c>
+    # Izinkan akses dari mana saja (Mengatasi CORS Block)
+    Header set Access-Control-Allow-Origin "*"
+</IfModule>
+
+# Izinkan file JSON dibaca sebagai JSON
+AddType application/json .json
+
+# PENTING: Izinkan file .terrain (hasil ctb-docker) dibaca sebagai binary
+<FilesMatch "\.terrain$">
+    ForceType application/octet-stream
+    Header set Content-Encoding gzip
+</FilesMatch>
+
+# PENTING: Izinkan file tile gambar
+<FilesMatch "\.(png|jpg|jpeg)$">
+    Header set Content-Type image/png
+</FilesMatch>
+
+<IfModule mod_mime.c>
+    # Tambahkan MIME type untuk GLB
+    AddType model/gltf-binary .glb
+    AddType model/gltf+json .gltf
+</IfModule>

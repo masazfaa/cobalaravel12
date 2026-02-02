@@ -13,8 +13,4 @@ class Home extends Controller
     function geoserver() {
         return view ('map.map2');
     }
-
-    function cesium() {
-        return view ('map.map3');
-    }
 }

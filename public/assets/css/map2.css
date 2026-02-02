@@ -244,65 +244,6 @@ body {
     vertical-align: middle;
 }
 
-/* Style Icon Masjid Ala Pin Leaflet */
-.pin-leaflet {
-    background-color: #006400; /* Hijau Masjid */
-    width: 34px; height: 34px; /* Ukuran Kotak */
-
-    /* Trik Bentuk Pin (Tetesan Air) */
-    border-radius: 50% 50% 50% 0;
-    transform: rotate(-45deg); /* Putar agar runcing di bawah */
-
-    /* Bayangan & Border */
-    border: 2px solid white;
-    box-shadow: 3px 3px 10px rgba(0,0,0,0.3);
-
-    /* Posisi biar ikon font di tengah */
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-/* Koreksi Rotasi Ikon di Dalamnya */
-/* Karena wadahnya diputar -45 derajat, isinya harus diputar balik 45 derajat biar tegak */
-.pin-leaflet i {
-    color: white;
-    font-size: 16px;
-    margin-top: 3px; /* Sedikit geser biar pas tengah visual */
-}
-
-
-
-/* Style Dasar Lingkaran Cluster */
-.custom-cluster {
-    background-clip: padding-box;
-    border-radius: 50%;
-    text-align: center;
-    color: white;
-    font-weight: bold;
-    font-family: Arial, sans-serif;
-    line-height: 40px; /* Samakan dengan height agar teks di tengah vertikal */
-    border: 3px solid rgba(255,255,255,0.4); /* Garis putih transparan */
-    box-shadow: 0 5px 10px rgba(0,0,0,0.3); /* Bayangan biar timbul */
-}
-
-/* WARNA-WARNI LOGIKA TRAFFIC LIGHT */
-
-/* 1. Hijau (Sedikit: < 5) */
-.cluster-small {
-    background-color: #27ae60;
-}
-
-/* 2. Kuning/Oranye (Sedang: 5 - 10) */
-.cluster-medium {
-    background-color: #f39c12;
-}
-
-/* 3. Merah (Banyak: > 10) */
-.cluster-large {
-    background-color: #c0392b;
-}
-
 /* =======================================================
    LEAFLET CONTROLS CUSTOMIZATION
 ======================================================== */

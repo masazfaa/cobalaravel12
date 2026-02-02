@@ -1,0 +1,102 @@
+:root {
+    --primary-color: #007bff;
+    --shadow-soft: 0 4px 12px rgba(0, 0, 0, 0.1);
+    --bg-glass: rgba(255, 255, 255, 0.95);
+}
+
+body {
+    margin: 0; padding: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    overflow: hidden; /* Mencegah scrollbar muncul */
+}
+
+/* Peta Wajib Fullscreen & Paling Bawah (z-index: 1) */
+#cesiumContainer {
+    width: 100%; height: 100vh;
+    position: absolute; top: 0; left: 0; z-index: 1;
+}
+
+.cesium-viewer-bottom {
+    display: none !important;
+}
+
+/* HEADER BOX - Kiri Atas */
+#header-box {
+    position: absolute;
+    top: 20px; left: 20px;
+    z-index: 1000; /* Wajib di atas peta */
+
+    /* Tampilan Solid Sederhana */
+    background-color: white;
+    border: 1px solid #ccc; /* Garis tepi jelas */
+    border-radius: 4px;     /* Sudut sedikit tumpul (standar) */
+    box-shadow: 0 2px 5px rgba(0,0,0,0.3); /* Bayangan hitam */
+
+    /* Tata Letak Isi */
+    padding: 8px 12px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer; /* Ubah kursor jadi telunjuk */
+    min-width: 200px;
+}
+
+/* Efek saat mouse diarahkan */
+#header-box:hover {
+    background-color: #f9f9f9; /* Berubah sedikit abu-abu */
+}
+
+/* Styling Elemen Kecil */
+.logo-img { height: 30px; width: auto; }
+
+.title-container { flex-grow: 1; } /* Mengisi ruang tengah */
+.app-title { font-weight: bold; font-size: 14px; color: #333; }
+.app-subtitle { font-size: 11px; color: #666; }
+
+#menu-icon { color: #666; }
+
+/* MENU DROPDOWN - Tersembunyi di awal */
+#menu-dropdown {
+    position: absolute;
+    top: 75px; left: 20px; /* Posisi di bawah header */
+    z-index: 1001;
+
+    background-color: white;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    width: 200px; /* Lebar samakan dengan header */
+
+    display: none; /* Default: Hilang */
+}
+
+/* Judul Kecil di Menu */
+.menu-header {
+    background-color: #eee;
+    padding: 8px 12px;
+    font-size: 11px;
+    font-weight: bold;
+    color: #555;
+    border-bottom: 1px solid #ccc;
+}
+
+/* Item Menu / Link */
+.menu-item {
+    display: block;
+    padding: 10px 12px;
+    text-decoration: none;
+    color: #333;
+    font-size: 13px;
+    border-bottom: 1px solid #f0f0f0; /* Garis tipis antar menu */
+}
+
+/* Efek Hover Menu */
+.menu-item:hover {
+    background-color: #e6f7ff; /* Biru muda saat ditunjuk */
+    color: #0056b3;
+}
+
+/* Hapus garis di item terakhir */
+.menu-item:last-child { border-bottom: none; }
+
+.menu-item i { margin-right: 8px; width: 16px; text-align: center; }

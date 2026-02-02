@@ -22,3 +22,13 @@
 Homestead.json
 Homestead.yaml
 Thumbs.db
+
+# Abaikan semua file di dalam folder public
+/public/*
+
+# Berikan pengecualian (jangan abaikan) folder assets dan isinya
+!/public/assets/
+
+# (Opsional) Jika ada file index.php atau .htaccess di public yang wajib naik
+!/public/index.php
+!/public/.htaccess
