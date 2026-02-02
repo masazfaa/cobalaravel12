@@ -17,4 +17,7 @@ class Home extends Controller
     function cesium() {
         return view ('map.map3');
     }
+    function cesiumion() {
+        return view ('map.map4');
+    }
 }

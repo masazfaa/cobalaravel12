@@ -34,7 +34,11 @@
 
 
         // 1. TOKEN CESIUM
-    Cesium.Ion.defaultAccessToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiJlZWY2NDhjNS00M2Y2LTQyOWItODRiMC02YzY0NmJiMGU4MWMiLCJpZCI6MTkwMjA3LCJpYXQiOjE3MDU0NzU1Nzh9.GC7NlIZjtNQXYctz51Kc71oWXspD4Gc4FQFyCM1TPYw';
+    if (window.CESIUM_TOKEN) {
+            Cesium.Ion.defaultAccessToken = window.CESIUM_TOKEN;
+        } else {
+            console.error("Token Cesium belum diset di .env!");
+        }
 
     // 2. SETUP VIEWER (PEMBERSIHAN TOMBOL ATAS)
     const viewer = new Cesium.Viewer('cesiumContainer', {
@@ -49,13 +53,9 @@
         navigationInstructionsInitiallyVisible: false,
         timeline: false,
         animation: false,
-
-        // Sisakan hanya tombol Fullscreen
         fullscreenButton: true,
-
-        // Matikan provider bawaan agar tidak berat
-        terrainProvider: undefined,
-        imageryProvider: false
+        terrainProvider: Cesium.Terrain.fromWorldTerrain(),
+        // imageryProvider: false
     });
 
     // 3. FUNGSI UTAMA
@@ -107,7 +107,7 @@
             });
 
             // --- BAGIAN D: KAMERA ---
-            viewer.camera.flyTo({
+            viewer.camera.setView({
                 destination: Cesium.Cartesian3.fromDegrees(110.372480, -7.765125, 1000),
                 orientation: {
                     heading: Cesium.Math.toRadians(0.0),
@@ -134,5 +134,69 @@
     }
 
     mulaiWebGIS();
+
+    // --- FUNGSI PENCARIAN OBJEK 3D ---
+window.cariObjek = function() {
+    const keyword = document.getElementById('search-input').value.toLowerCase();
+
+    if (!keyword) {
+        alert("Masukkan kata kunci pencarian!");
+        return;
+    }
+
+    console.log("Mencari: " + keyword);
+
+    // 1. Ambil semua entity yang ada di viewer
+    const entities = viewer.entities.values;
+    let foundEntity = null;
+
+    // 2. Loop cari yang namanya cocok
+    for (let i = 0; i < entities.length; i++) {
+        const entity = entities[i];
+
+        // Cek Nama (name)
+        const nameMatch = entity.name && entity.name.toLowerCase().includes(keyword);
+
+        // (Opsional) Cek Deskripsi juga kalau mau lebih canggih
+        // const descMatch = entity.description && entity.description.getValue().toLowerCase().includes(keyword);
+
+        if (nameMatch) {
+            foundEntity = entity;
+            break; // Ketemu satu, langsung berhenti (atau bisa dibuat list jika mau)
+        }
+    }
+
+    // 3. Aksi jika ditemukan
+    if (foundEntity) {
+        // A. Terbang ke objek (Zoom Dinamis sesuai ukuran objek)
+        viewer.flyTo(foundEntity, {
+            duration: 2.0, // Durasi terbang 2 detik
+            offset: new Cesium.HeadingPitchRange(
+                Cesium.Math.toRadians(0), // Heading
+                Cesium.Math.toRadians(-45), // Pitch (Agak menunduk)
+                0 // Range 0 = Cesium otomatis hitung jarak ideal biar pas satu layar
+            )
+        }).then(function() {
+            // B. Buka Popup (InfoBox) Otomatis setelah sampai
+            viewer.selectedEntity = foundEntity;
+        });
+
+        // C. (Opsional) Efek Highlight Putih Aktif
+        if(foundEntity.model) {
+            foundEntity.model.silhouetteSize = 2.0;
+        }
+
+    } else {
+        alert("Objek tidak ditemukan dengan kata kunci: " + keyword);
+    }
+};
+
+// Tambahan: Biar bisa tekan ENTER di keyboard
+document.getElementById('search-input').addEventListener("keypress", function(event) {
+    if (event.key === "Enter") {
+        event.preventDefault();
+        window.cariObjek();
+    }
+});
 
 });

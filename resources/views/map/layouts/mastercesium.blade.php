@@ -38,9 +38,18 @@
     <a href="{{ url('cesium')}}" class="menu-item">
         <i></i> Peta 3D Cesium
     </a>
+
+    <a href="{{ url('cesiumion')}}" class="menu-item">
+        <i></i> Peta 3D Cesium Ion
+    </a>
 </div>
 
-<div id="search-wrapper"></div>
+<div id="search-wrapper">
+    <input type="text" id="search-input" placeholder="Cari gedung / objek..." autocomplete="off">
+    <button onclick="cariObjek()" id="search-btn">
+        <i class="fa-solid fa-magnifying-glass"></i>
+    </button>
+</div>
         @yield('content')
     </div>
     <script src="https://cesium.com/downloads/cesiumjs/releases/1.113/Build/Cesium/Cesium.js"></script>

@@ -45,6 +45,9 @@
         <a href="{{ url('cesium')}}" class="menu-item">
             <i></i> Peta 3D Cesium
         </a>
+        <a href="{{ url('cesiumion')}}" class="menu-item">
+        <i></i> Peta 3D Cesium Ion
+        </a>
     </div>
 
     <div id="search-wrapper"></div>

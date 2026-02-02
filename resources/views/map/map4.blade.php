@@ -1,8 +1,8 @@
 @extends('map.layouts.mastercesium')
 
 @section('content')
-<link rel="stylesheet" href="{{ asset('assets/css/cesium.css') }}">
-<script src="{{ asset('assets/js/cesium.js') }}"></script>
+<link rel="stylesheet" href="{{ asset('assets/css/cesium2.css') }}">
+<script src="{{ asset('assets/js/cesium2.js') }}"></script>
     <div id="cesiumContainer"></div>
 @endsection
 
