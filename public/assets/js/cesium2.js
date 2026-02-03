@@ -56,46 +56,6 @@ document.addEventListener('DOMContentLoaded', async function () {
     // Aktifkan Depth Test agar objek menyatu dengan terrain
     viewer.scene.globe.depthTestAgainstTerrain = true;
 
-    // Variabel untuk menyimpan Entity Popup
-    let sglcEntity = null;
-
-
-    // =========================================
-    // 3. MEMUAT ASET (TERRAIN, BANGUNAN, POPUP)
-    // =========================================
-
-    try {
-        // A. Load Terrain
-        viewer.scene.setTerrain(
-            new Cesium.Terrain(
-                await Cesium.CesiumTerrainProvider.fromIonAssetId(2976593)
-            )
-        );
-
-        // B. Load Bangunan (3D Tileset)
-        const buildingTileset = await Cesium.Cesium3DTileset.fromIonAssetId(2976635);
-        viewer.scene.primitives.add(buildingTileset);
-
-        // C. Buat Entity Popup (Otomatis menempel di tengah bangunan)
-        const assetCenter = buildingTileset.boundingSphere.center;
-
-        sglcEntity = viewer.entities.add({
-            id: 'sglc-entity',
-            name: "Gedung SGLC UGM",
-            position: assetCenter, // Posisi dinamis dari aset
-            point: {
-                pixelSize: 1,
-                color: Cesium.Color.TRANSPARENT,
-            },
-            description: `
-                <div style="padding: 10px;">
-                    <p><b>Smart Green Learning Center</b></p>
-                    <p>Ini adalah gedung baru SGLC di Fakultas Teknik UGM.</p>
-                </div>
-            `
-        });
-
-        // D. Atur Kamera Awal (Sesuai koordinat yang Anda minta)
         viewer.camera.setView({
             destination: Cesium.Cartesian3.fromDegrees(110.372480, -7.765125, 1000),
             orientation: {
@@ -104,26 +64,80 @@ document.addEventListener('DOMContentLoaded', async function () {
                 roll: 0.0
             }
         });
+    // =========================================
+    // 3. MEMUAT ASET SECARA DINAMIS (SCALABLE)
+    // =========================================
 
-    } catch (error) {
-        console.error("Gagal memuat aset Cesium:", error);
+    // A. Load Terrain (Tetap satu kali saja)
+    try {
+        viewer.scene.setTerrain(
+            new Cesium.Terrain(
+                await Cesium.CesiumTerrainProvider.fromIonAssetId(2976593)
+            )
+        );
+    } catch (e) { console.error("Terrain Error", e); }
+
+
+    // B. CONFIG: Daftar Gedung (Simulasi Data dari Backend)
+    // Cukup edit bagian ini kalau mau nambah/kurang gedung
+    const daftarGedung = [
+        {
+            id: 2976635, // ID Aset di Cesium Ion
+            name: "Gedung SGLC UGM",
+            desc: "<p><b>SGLC UGM</b></p><p>Smart Green Learning Center.</p>"
+        },
+        {
+            id: 2976596,
+            name: "Gedung ERIC UGM",
+            desc: "<p><b>ERIC UGM</b></p><p>Engineering Research and Innovation Center.</p>"
+        }
+        // Mau nambah gedung lagi? Tinggal tambah objek di sini.
+    ];
+
+    // C. LOOPING: Memuat semua gedung dalam daftar
+    for (const data of daftarGedung) {
+        try {
+            // 1. Load Tileset
+            const tileset = await Cesium.Cesium3DTileset.fromIonAssetId(data.id);
+            viewer.scene.primitives.add(tileset);
+
+            // 2. Buat Entity Popup
+            const center = tileset.boundingSphere.center;
+            const entity = viewer.entities.add({
+                name: data.name,
+                position: center,
+                point: { pixelSize: 1, color: Cesium.Color.TRANSPARENT },
+                description: `<div style="padding:10px">${data.desc}</div>`
+            });
+
+            // 3. RAHASIA DINAMIS: Tempelkan Entity ke Tileset
+            // Kita simpan referensi entity di dalam objek tileset itu sendiri
+            tileset._linkedEntity = entity;
+
+        } catch (error) {
+            console.error(`Gagal memuat gedung ${data.name}:`, error);
+        }
     }
 
 
     // =========================================
-    // 4. INTERAKSI KLIK (HANDLER)
+    // 4. INTERAKSI KLIK (HANDLER DINAMIS)
     // =========================================
+    // Handler ini tidak perlu diedit lagi walau gedungnya ada 1000
 
     const handler = new Cesium.ScreenSpaceEventHandler(viewer.scene.canvas);
 
     handler.setInputAction(function(movement) {
         const pickedFeature = viewer.scene.pick(movement.position);
 
-        // Jika user mengklik Bangunan Fisik (3D Tiles),
-        // Kita paksa Viewer untuk menampilkan info dari Entity Popup kita
         if (Cesium.defined(pickedFeature) && pickedFeature instanceof Cesium.Cesium3DTileFeature) {
-            if (sglcEntity) {
-                viewer.selectedEntity = sglcEntity;
+
+            // Ambil tileset induk dari fitur yang diklik
+            const tileset = pickedFeature.primitive;
+
+            // Cek: Apakah tileset ini punya link ke entity? (Lihat langkah C.3 di atas)
+            if (tileset._linkedEntity) {
+                viewer.selectedEntity = tileset._linkedEntity; // Buka Popup
             }
         }
 
