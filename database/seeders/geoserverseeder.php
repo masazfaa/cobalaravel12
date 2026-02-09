@@ -10,11 +10,10 @@ class geoserverseeder extends Seeder
     public function run(): void
     {
         // Kosongkan tabel dulu
-        // DB::table('geoserver_layers')->truncate();
+        DB::table('geoserverdb')->truncate();
 
         $layers = [
             // 1. DATA VEKTOR: ADMIN (Poligon)
-            // Di JS Anda: WMS aktif, WFS aktif (untuk popup & search)
             [
                 'title'       => 'Batas Wilayah',
                 'layer_name'  => 'adminkw',
@@ -26,6 +25,8 @@ class geoserverseeder extends Seeder
                 'enable_wmts' => false,
                 'is_active'   => true,
                 'z_index'     => 1,
+                'created_at'  => now(), // <--- Tambahkan ini
+                'updated_at'  => now(), // <--- Tambahkan ini
             ],
 
             // 2. DATA VEKTOR: JALAN (Garis)
@@ -40,6 +41,8 @@ class geoserverseeder extends Seeder
                 'enable_wmts' => false,
                 'is_active'   => true,
                 'z_index'     => 2,
+                'created_at'  => now(), // <--- Tambahkan ini
+                'updated_at'  => now(), // <--- Tambahkan ini
             ],
 
             // 3. DATA VEKTOR: MASJID (Titik)
@@ -54,21 +57,24 @@ class geoserverseeder extends Seeder
                 'enable_wmts' => false,
                 'is_active'   => true,
                 'z_index'     => 3,
+                'created_at'  => now(), // <--- Tambahkan ini
+                'updated_at'  => now(), // <--- Tambahkan ini
             ],
 
             // 4. DATA RASTER: FOTO UDARA (WMTS)
-            // Di JS Anda: WMTS aktif, default mati (false) biar ringan
             [
                 'title'       => 'Foto Udara (WMTS)',
-                'layer_name'  => 'krwn', // Pastikan nama layer raster benar
+                'layer_name'  => 'krwn',
                 'workspace'   => 'latihan_leaflet',
                 'type'        => 'raster',
                 'base_url'    => 'http://localhost:8080/geoserver/',
-                'enable_wms'  => false, // Raster biasanya berat di WMS, pakai WMTS
-                'enable_wfs'  => false, // Raster tidak bisa WFS
+                'enable_wms'  => false,
+                'enable_wfs'  => false,
                 'enable_wmts' => true,
-                'is_active'   => false, // Default mati
-                'z_index'     => 0, // Paling bawah
+                'is_active'   => false,
+                'z_index'     => 0,
+                'created_at'  => now(),
+                'updated_at'  => now(),
             ],
         ];
 

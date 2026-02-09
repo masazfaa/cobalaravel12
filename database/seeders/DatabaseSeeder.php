@@ -27,6 +27,7 @@ class DatabaseSeeder extends Seeder
             jalankwmysql::class,   // Data Jalan
             masjidkwmysql::class,  // Data Masjid
             geoserverseeder::class, // Data Geoserver
+            CesiumDataSeeder::class, // Data Cesium
         ]);
     }
 }

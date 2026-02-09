@@ -14,5 +14,6 @@
 <script>
     window.APP_URL = "{{ url('/') }}";
     window.CESIUM_TOKEN = "{{ env('CESIUM_TOKEN') }}";
+    window.DATA_GEDUNG_RAW = @json($dataIon);
 </script>
 @endpush

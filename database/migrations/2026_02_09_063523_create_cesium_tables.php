@@ -1,5 +1,3 @@
-php artisan make:migration create_cesium_tables
-
 <?php
 
 use Illuminate\Database\Migrations\Migration;
@@ -15,24 +13,19 @@ return new class extends Migration
             $table->id();
             $table->string('name');
             $table->text('description')->nullable();
-            $table->string('model_path'); // Simpan path relatif: /data3d/nama.glb
+            $table->string('model_path');
             $table->double('longitude');
             $table->double('latitude');
             $table->double('height')->default(0);
             $table->double('heading')->default(0);
 
-            // Kolom Spasial
-            $table->geometry('geom', 'geometry', 4326);
-
             $table->timestamps();
-
-            $table->spatialIndex('geom');
         });
 
         // 2. Tabel Cesium Ion
         Schema::create('cesiumion', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('ion_asset_id'); // ID dari Cesium (contoh: 2976635)
+            $table->unsignedBigInteger('ion_asset_id');
             $table->string('name');
             $table->text('description')->nullable();
             $table->timestamps();

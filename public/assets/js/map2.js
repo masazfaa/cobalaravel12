@@ -1,11 +1,125 @@
     document.addEventListener('DOMContentLoaded', function () {
-        var map = L.map('map').setView([-7.916181, 110.095629], 15);
-        L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            maxZoom: 20,
-            attribution: '&copy; OpenStreetMap'
-        }).addTo(map);
+    // =========================================
+    // 0. CEK DATA DARI CONTROLLER
+    // =========================================
+    const layersConfig = window.GEOSERVER_LAYERS;
+    const baseURL = window.APP_URL;
 
-// Definisikan fungsi secara GLOBAL menggunakan 'window.'
+
+    // =========================================
+    // 1. SETUP PETA DASAR
+    // =========================================
+
+    var map = L.map('map').setView([-7.916181, 110.095629], 15);
+
+    var baseLayers = [
+        {
+            name: "Open Street Map",
+            layer: L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; OpenStreetMap'
+            }),
+            icon: '<i class="fa-solid fa-map" style="color:#555;"></i>'
+        },
+        {
+            name: "Google Satellite",
+            layer: L.tileLayer('https://mt1.google.com/vt/lyrs=s&x={x}&y={y}&z={z}', {
+                attribution: 'Google'
+            }),
+            icon: '<i class="fa-solid fa-satellite" style="color:#555;"></i>'
+        }
+    ];
+
+    map.addLayer(baseLayers[1].layer);
+
+    // =========================================
+    // 2. KONTROL PENCARIAN & PANEL LAYER
+    // =========================================
+    var searchGroup = new L.LayerGroup()
+
+    // 2. Inisialisasi Kontrol Pencarian
+    var searchControl = new L.Control.Search({
+        layer: searchGroup,      // Target pencarian (sementara kosong)
+        propertyName: 'nama',    // Field yang dicari
+        marker: false,           // Jangan kasih marker merah default
+        collapsed: false,  // Agar input box langsung muncul (tidak perlu klik ikon)
+
+
+        textPlaceholder: 'Cari lokasi...', // Opsional: Teks bantuan
+    moveToLocation: function(latlng, title, map) {
+        map.flyTo(latlng, 17);
+
+        if (latlng.layer) {
+            // Tunggu 1 detik (1000ms) sampai zoom selesai, baru buka popup
+            setTimeout(function() {
+                latlng.layer.openPopup();
+            }, 1500);
+        }
+    }
+    });
+
+    // 3. Ambil Wadah Custom kita
+    var searchWrapper = document.getElementById('search-wrapper');
+
+    // 4. Masukkan Tombol Search ke dalam Wadah tersebut
+    if (searchWrapper) {
+        // Tambahkan dulu ke map agar fungsi internalnya jalan
+        map.addControl(searchControl);
+
+        // LALU PINDAHKAN elemen HTML-nya ke div kita
+        searchWrapper.appendChild(searchControl.getContainer());
+    }
+
+    var PanelBtn = L.Control.extend({
+        options: { position: 'topright' }, // Posisi sama di kanan atas
+
+        onAdd: function(map) {
+            var btn = L.DomUtil.create('div', 'custom-layer-btn');
+            btn.innerHTML = '<i class="fa-solid fa-layer-group"></i>';
+            btn.title = "Layer List";
+
+            // LOGIKA KLIK YANG BENAR
+            btn.onclick = function(e) {
+                L.DomEvent.stopPropagation(e); // Cegah klik tembus ke peta
+
+                // Ambil elemen HTML asli dari Panel Layers
+                var panelContainer = panelLayers.getContainer();
+
+                // Cek: Apakah sedang sembunyi?
+                if (panelContainer.style.display === 'none') {
+                    panelContainer.style.display = 'block'; // MUNCULKAN
+                } else {
+                    panelContainer.style.display = 'none';  // SEMBUNYIKAN
+                }
+            };
+            return btn;
+        }
+    });
+    // Tambahkan tombol ke peta
+    map.addControl(new PanelBtn());
+
+
+    // 3. Data Layer Overlay (Sementara Kosong Dulu)
+    // Nanti diisi data GeoJSON
+    var overLayers = [
+        {
+            group: "Polygon Layers",
+            layers: []
+        }
+    ];
+
+    // 4. Pasang Panel Layers
+    var panelLayers = new L.Control.PanelLayers(baseLayers, overLayers, {
+        collapsibleGroups: true, // Bisa dilipat per grup
+        collapsed: false,        // Panel terbuka isinya
+        position: 'topright',    // Posisi kanan atas
+        compact: true            // Tampilan padat
+    });
+
+    map.addControl(panelLayers);
+    // =========================================
+    // 3. UI GLOBAL (MENU TOGGLE)
+    // =========================================
+    // Definisikan fungsi secara GLOBAL menggunakan 'window.'
     window.toggleMenu = function() {
         var menu = document.getElementById('menu-dropdown');
         var icon = document.getElementById('menu-icon');
@@ -38,7 +152,7 @@
     });
 
     // Event: Saat mouse bergerak di atas peta
-map.on('mousemove', function(e) {
+    map.on('mousemove', function(e) {
     // Ambil elemen span
     var latSpan = document.getElementById('lat-val');
     var lngSpan = document.getElementById('lng-val');
@@ -49,113 +163,11 @@ map.on('mousemove', function(e) {
         latSpan.innerText = e.latlng.lat.toFixed(5);
         lngSpan.innerText = e.latlng.lng.toFixed(5);
     }
-});
+    });
 
-var searchGroup = new L.LayerGroup()
-
-// 2. Inisialisasi Kontrol Pencarian
-var searchControl = new L.Control.Search({
-    layer: searchGroup,      // Target pencarian (sementara kosong)
-    propertyName: 'nama',    // Field yang dicari
-    marker: false,           // Jangan kasih marker merah default
-    collapsed: false,  // Agar input box langsung muncul (tidak perlu klik ikon)
-
-
-    textPlaceholder: 'Cari lokasi...', // Opsional: Teks bantuan
-moveToLocation: function(latlng, title, map) {
-    map.flyTo(latlng, 17);
-
-    if (latlng.layer) {
-        // Tunggu 1 detik (1000ms) sampai zoom selesai, baru buka popup
-        setTimeout(function() {
-            latlng.layer.openPopup();
-        }, 1500);
-    }
-}
-});
-
-// 3. Ambil Wadah Custom kita
-var searchWrapper = document.getElementById('search-wrapper');
-
-// 4. Masukkan Tombol Search ke dalam Wadah tersebut
-if (searchWrapper) {
-    // Tambahkan dulu ke map agar fungsi internalnya jalan
-    map.addControl(searchControl);
-
-    // LALU PINDAHKAN elemen HTML-nya ke div kita
-    searchWrapper.appendChild(searchControl.getContainer());
-}
-
-// 1. Definisikan Peta Dasar
-var baseLayers = [
-    {
-        name: "Open Street Map",
-        layer: L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '&copy; OSM contributors'
-        }),
-        // Ikon FontAwesome sebagai thumbnail
-        icon: '<i class="fa-solid fa-map" style="color:#555;"></i>'
-    },
-    {
-        name: "Google Satellite",
-        layer: L.tileLayer('https://mt1.google.com/vt/lyrs=s&x={x}&y={y}&z={z}', {
-            attribution: 'Google'
-        }),
-        icon: '<i class="fa-solid fa-satellite" style="color:#555;"></i>'
-    }
-];
-
-map.addLayer(baseLayers[1].layer);
-
-
-// 2. Buat Tombol Custom
-var PanelBtn = L.Control.extend({
-    options: { position: 'topright' }, // Posisi sama di kanan atas
-
-    onAdd: function(map) {
-        var btn = L.DomUtil.create('div', 'custom-layer-btn');
-        btn.innerHTML = '<i class="fa-solid fa-layer-group"></i>';
-        btn.title = "Layer List";
-
-        // LOGIKA KLIK YANG BENAR
-        btn.onclick = function(e) {
-            L.DomEvent.stopPropagation(e); // Cegah klik tembus ke peta
-
-            // Ambil elemen HTML asli dari Panel Layers
-            var panelContainer = panelLayers.getContainer();
-
-            // Cek: Apakah sedang sembunyi?
-            if (panelContainer.style.display === 'none') {
-                panelContainer.style.display = 'block'; // MUNCULKAN
-            } else {
-                panelContainer.style.display = 'none';  // SEMBUNYIKAN
-            }
-        };
-        return btn;
-    }
-});
-// Tambahkan tombol ke peta
-map.addControl(new PanelBtn());
-
-
-// 3. Data Layer Overlay (Sementara Kosong Dulu)
-// Nanti diisi data GeoJSON
-var overLayers = [
-    {
-        group: "Polygon Layers",
-        layers: []
-    }
-];
-
-// 4. Pasang Panel Layers
-var panelLayers = new L.Control.PanelLayers(baseLayers, overLayers, {
-    collapsibleGroups: true, // Bisa dilipat per grup
-    collapsed: false,        // Panel terbuka isinya
-    position: 'topright',    // Posisi kanan atas
-    compact: true            // Tampilan padat
-});
-
-map.addControl(panelLayers);
+    // =========================================
+    // 4. CORE ENGINE: LOOPING DATA DARI DB
+    // =========================================
 
 // // 1. WMS Poligon (Admin)
 // var wmsAdmin = L.tileLayer.wms('http://localhost:8080/geoserver/latihan_leaflet/wms', {
@@ -186,10 +198,6 @@ map.addControl(panelLayers);
 // panelLayers.addOverlay({layer: wmsAdmin, name: "Admin (WMS)"}, "DATA SERVER (WMS)");
 // panelLayers.addOverlay({layer: wmsJalan, name: "Jalan (WMS)"}, "DATA SERVER (WMS)");
 // panelLayers.addOverlay({layer: wmsMasjid, name: "Masjid (WMS)"}, "DATA SERVER (WMS)");
-
-
-
-
 
 
 
@@ -239,161 +247,186 @@ map.addControl(panelLayers);
 //     panelLayers.addOverlay({layer: layerMasjidWFS, name: "Masjid (WFS)"}, "DATA SERVER (WFS)");
 // });
 
-    // ==========================================
-    // LAYER VISUAL (WMS - GAMBAR DARI GEOSERVER)
-    // ==========================================
-    // Tujuannya: Agar peta terlihat cantik sesuai styling SLD di GeoServer
+// =========================================
+    // 4. CORE ENGINE: LOOPING DATA DARI DB
+    // =========================================
 
-    var wmsAdmin = L.tileLayer.wms('http://localhost:8080/geoserver/latihan_leaflet/wms', {
-        layers: 'latihan_leaflet:adminkw',
-        format: 'image/png',
-        transparent: true
-    });
+    // Kita loop setiap konfigurasi layer yang ada di database
+    layersConfig.forEach(function(config) {
 
-    var wmsJalan = L.tileLayer.wms('http://localhost:8080/geoserver/latihan_leaflet/wms', {
-        layers: 'latihan_leaflet:jalankw',
-        format: 'image/png',
-        transparent: true
-    });
+        // Bersihkan Base URL (tambahkan slash di akhir jika belum ada)
+        // Contoh: "http://localhost:8080/geoserver" -> "http://localhost:8080/geoserver/"
+        var cleanBaseUrl = config.base_url.replace(/\/$/, "") + "/";
+        var fullLayerName = config.workspace + ':' + config.layer_name;
 
-    var wmsMasjid = L.tileLayer.wms('http://localhost:8080/geoserver/latihan_leaflet/wms', {
-        layers: 'latihan_leaflet:masjid',
-        format: 'image/png',
-        transparent: true
-    });
+        // --- A. TIPE VECTOR (Admin, Jalan, Masjid) ---
+        if (config.type === 'vector') {
 
-    // Tampilkan WMS secara default
-    wmsAdmin.addTo(map);
-    wmsJalan.addTo(map);
-    wmsMasjid.addTo(map);
+            // 1. VISUALISASI (WMS)
+            // --------------------
+            if (config.enable_wms) {
+                var wmsLayer = L.tileLayer.wms(cleanBaseUrl + 'wms', {
+                    layers: fullLayerName,
+                    format: 'image/png',
+                    transparent: true,
+                    zIndex: config.z_index // Urutan tumpukan sesuai DB
+                });
 
-    // Masukkan ke Panel
-    panelLayers.addOverlay({layer: wmsAdmin, name: "Batas Wilayah", active: true}, "TAMPILAN (WMS)");
-    panelLayers.addOverlay({layer: wmsJalan, name: "Jaringan Jalan", active: true}, "TAMPILAN (WMS)");
-    panelLayers.addOverlay({layer: wmsMasjid, name: "Sebaran Masjid", active: true}, "TAMPILAN (WMS)");
+                // Tambahkan ke Peta jika 'is_active' true
+                if(config.is_active) wmsLayer.addTo(map);
 
-
-    // ==========================================
-    // 6. LAYER LOGIKA (WFS - DATA INTERAKTIF & SEARCH)
-    // ==========================================
-    // Tujuannya: Agar bisa diklik (Popup) dan Dicari.
-    // Kita buat TRANSPARAN total agar tidak menutupi gambar WMS.
-
-    // --- A. WFS ADMIN (Poligon) ---
-    var urlWfsAdmin = "http://localhost:8080/geoserver/latihan_leaflet/ows?service=WFS&version=1.0.0&request=GetFeature&typeName=latihan_leaflet:adminkw&outputFormat=application/json";
-
-    fetch(urlWfsAdmin).then(r => r.json()).then(data => {
-        var layerAdminWFS = L.geoJSON(data, {
-            // STYLE INVISIBLE
-            style: { color: 'transparent', fillColor: 'transparent', fillOpacity: 0 },
-            onEachFeature: function(feature, layer) {
-                var p = feature.properties;
-                // Normalisasi Nama (Cari Padukuhan atau Nama)
-                feature.properties.nama = p.Padukuhan || p.PADUKUHAN || p.Nama || "Wilayah";
-
-                layer.bindPopup("Wilayah: " + feature.properties.nama);
-                searchGroup.addLayer(layer); // Masuk ke pencarian
+                // Tambahkan ke Panel Layer
+                panelLayers.addOverlay({
+                    layer: wmsLayer,
+                    name: config.title,
+                    active: config.is_active
+                }, "Vector Layers (WMS)");
             }
-        }).addTo(map); // Wajib add to map agar bisa diklik
-    });
 
-    // --- B. WFS JALAN (Garis) ---
-    var urlWfsJalan = "http://localhost:8080/geoserver/latihan_leaflet/ows?service=WFS&version=1.0.0&request=GetFeature&typeName=latihan_leaflet:jalankw&outputFormat=application/json";
 
-    fetch(urlWfsJalan).then(r => r.json()).then(data => {
-        var layerJalanWFS = L.geoJSON(data, {
-            // STYLE INVISIBLE (Tapi tebal biar gampang diklik)
-            style: { color: 'transparent', weight: 15, opacity: 0 },
-            onEachFeature: function(feature, layer) {
-                var p = feature.properties;
-                feature.properties.nama = p.Nama || p.NAMA || "Jalan";
+            // 2. INTERAKSI & PENCARIAN (WFS)
+            // ------------------------------
+            if (config.enable_wfs) {
+                // Susun URL WFS (Format GeoJSON)
+                var wfsUrl = cleanBaseUrl + "ows?service=WFS&version=1.0.0&request=GetFeature&typeName=" +
+                             fullLayerName + "&outputFormat=application/json";
 
-                layer.bindPopup("Jalan: " + feature.properties.nama);
-                searchGroup.addLayer(layer);
+                // Fetch Data GeoJSON dari GeoServer
+                fetch(wfsUrl)
+                    .then(response => response.json())
+                    .then(data => {
+                        var interactionLayer = L.geoJSON(data, {
+                            // Style Transparan (Invisible) tapi bisa diklik
+                            style: {
+                                color: 'transparent',
+                                fillColor: 'transparent',
+                                fillOpacity: 0,
+                                weight: 15 // Garis tebal biar gampang diklik
+                            },
+                            pointToLayer: function(f, latlng) {
+                                // Titik radius besar transparan
+                                return L.circleMarker(latlng, { radius: 10, stroke: false, fillOpacity: 0 });
+                            },
+                            onEachFeature: function(feature, layer) {
+                                var p = feature.properties;
+
+                                // === KUNCI PENCARIAN (FIX) ===
+                                // Cari kolom yang kira-kira adalah Nama, lalu simpan ke 'nama' (huruf kecil)
+                                // Ini agar plugin Leaflet-Search bisa menemukannya.
+                                var labelNama = p.nama || p.Nama || p.NAMA ||       // Cek variasi nama
+                                                p.Padukuhan || p.PADUKUHAN ||       // Cek wilayah
+                                                p.Kecamatan ||                      // Cek kecamatan
+                                                p.Jalan ||                          // Cek jalan
+                                                config.title;                    // Fallback
+
+                                feature.properties.nama = labelNama; // INJECT PROPERTI 'nama'
+
+                                // === GENERATE POPUP OTOMATIS ===
+                                var popupTable = '<div style="max-height:200px; overflow-y:auto;"><table style="width:100%; font-size:12px; border-collapse:collapse;">';
+
+                                // Loop semua kolom data yang ada di GeoServer
+                                for (var key in p) {
+                                    // Filter: Jangan tampilkan bbox atau object geometry
+                                    if (p.hasOwnProperty(key) && key !== 'bbox' && typeof p[key] !== 'object') {
+                                        popupTable += `
+                                            <tr style="border-bottom:1px solid #eee;">
+                                                <td style="color:#666; text-transform:capitalize;">${key}</td>
+                                                <td style="font-weight:bold; text-align:right;">${p[key]}</td>
+                                            </tr>`;
+                                    }
+                                }
+                                popupTable += '</table></div>';
+
+                                var popupContent = `
+                                    <h4 style="margin:0; color:#007bff; border-bottom:2px solid #ddd;">${labelNama}</h4>
+                                    <small>${config.title}</small>
+                                    ${popupTable}
+                                `;
+
+                                layer.bindPopup(popupContent);
+
+                                // Masukkan ke grup pencarian
+                                searchGroup.addLayer(layer);
+                            }
+                        });
+
+                        // Wajib addTo(map) agar event klik jalan, walau tak terlihat
+                        interactionLayer.addTo(map);
+
+                    })
+                    .catch(err => console.error(`Gagal load WFS ${config.layer_name}:`, err));
             }
-        }).addTo(map);
-    });
+        }
 
-    // --- C. WFS MASJID (Titik) ---
-    var urlWfsMasjid = "http://localhost:8080/geoserver/latihan_leaflet/ows?service=WFS&version=1.0.0&request=GetFeature&typeName=latihan_leaflet:masjid&outputFormat=application/json";
 
-    fetch(urlWfsMasjid).then(r => r.json()).then(data => {
-        var layerMasjidWFS = L.geoJSON(data, {
-            // STYLE INVISIBLE (Radius agak besar biar gampang diklik jari/mouse)
-            pointToLayer: function(f, latlng) {
-                return L.circleMarker(latlng, { radius: 10, color: 'transparent', fillOpacity: 0 });
-            },
-            onEachFeature: function(feature, layer) {
-                var p = feature.properties;
-                // Normalisasi Nama (Sesuai console log Bapak tadi: 'Nama')
-                feature.properties.nama = p.Nama || p.NAMA || "Masjid";
+        // --- B. TIPE RASTER (Foto Udara / Citra) ---
+        else if (config.type === 'raster') {
 
-                layer.bindPopup("Masjid: " + feature.properties.nama);
-                searchGroup.addLayer(layer);
+            // 1. WMTS (Visual Cepat via GWC)
+            if (config.enable_wmts) {
+                // Pola URL GeoWebCache (EPSG:900913)
+                var wmtsUrl = `${cleanBaseUrl}gwc/service/tms/1.0.0/${fullLayerName}@EPSG%3A900913@png/{z}/{x}/{y}.png`;
+
+                var rasterLayer = L.tileLayer(wmtsUrl, {
+                    tms: true, // Wajib true untuk GWC
+                    maxZoom: 22,
+                    opacity: 1.0,
+                    attribution: config.title
+                });
+
+                // Tambahkan ke Panel (Default non-aktif biar ringan)
+                panelLayers.addOverlay({
+                    layer: rasterLayer,
+                    name: config.title + " (WMTS)",
+                    active: config.is_active
+                }, "Raster Layers");
+
+                if(config.is_active) rasterLayer.addTo(map);
             }
-        }).addTo(map);
+
+            // 2. FITUR DOWNLOAD (WCS)
+            // Tombol dummy di panel layer untuk download file asli (GeoTIFF)
+            var downloadLayer = L.layerGroup(); // Layer kosong
+
+            // URL WCS GetCoverage
+            var wcsUrl = `${cleanBaseUrl}wcs?service=WCS&version=2.0.1&request=GetCoverage&coverageId=${fullLayerName}&format=image/geotiff`;
+
+            downloadLayer.on('add', function() {
+                var konfirmasi = confirm(`Apakah Anda ingin mendownload data mentah (GeoTIFF) untuk ${config.title}?`);
+                if (konfirmasi) {
+                    window.open(wcsUrl, '_self');
+                }
+                // Matikan centang lagi otomatis setelah diklik
+                setTimeout(() => map.removeLayer(downloadLayer), 500);
+            });
+
+            panelLayers.addOverlay({
+                layer: downloadLayer,
+                name: `<i class="fa-solid fa-download"></i> Download ${config.title}`,
+                active: false
+            }, "Download Data");
+
+        }
+
+    }); // End Loop Configuration
+
+
+    // =========================================
+    // 5. STATIC LAYER (MANUAL)
+    // =========================================
+    // Khusus untuk layer file statis (XYZ) lokal
+
+    var layerStatic = L.tileLayer(baseURL + '/citra/krwn/{z}/{x}/{y}.png', {
+        tms: true,
+        minZoom: 12,
+        maxZoom: 21,
+        attribution: 'Citra Statis'
     });
 
-// ==========================================
-    // 7. LAYER RASTER (WMTS - UNTUK VISUALISASI)
-    // ==========================================
-    // Pastikan layer 'krwn' sudah ada di GeoServer
-
-    // Pola URL GeoWebCache (GWC) di GeoServer:
-    // http://localhost:8080/geoserver/gwc/service/tms/1.0.0/WORKSPACE:LAYER@EPSG%3A900913@png/{z}/{x}/{y}.png
-    // EPSG:900913 adalah kode lain dari Web Mercator (Google Maps projection)
-
-    var wmtsUrl = 'http://localhost:8080/geoserver/gwc/service/tms/1.0.0/latihan_leaflet:krwn@EPSG%3A900913@png/{z}/{x}/{y}.png';
-
-    var layerKrwnWMTS = L.tileLayer(wmtsUrl, {
-        tms: true, // WAJIB TRUE! Karena sistem koordinat tile GeoServer terbalik (Y-axis)
-        maxZoom: 22, // Sesuaikan dengan zoom level maksimal GeoServer
-        opacity: 1.0,
-        attribution: 'Data Raster Karangwuni'
-    });
-
-    // Masukkan ke Panel Layer sebagai Overlay (Bisa dimati-nyalakan)
-    // Kita taruh di grup baru "DATA RASTER"
-    panelLayers.addOverlay({
-        layer: layerKrwnWMTS,
-        name: "Foto Udara (WMTS)",
-        active: false // Default mati biar ringan diawal
-    }, "DATA RASTER");
-
-
-    // ==========================================
-    // 8. LAYER WCS (DOWNLOADER)
-    // ==========================================
-
-    // 1. Siapkan URL WCS (GetCoverage)
-    // Format: service=WCS & request=GetCoverage & coverageId=WORKSPACE:LAYER & format=image/geotiff
-    var wcsUrl = "http://localhost:8080/geoserver/latihan_leaflet/wcs?service=WCS&version=2.0.1&request=GetCoverage&coverageId=latihan_leaflet:krwn&format=image/geotiff";
-
-    // 2. Buat Layer "Pancingan" (Dummy Layer)
-    // Kita pakai LayerGroup kosong, tujuannya cuma buat mancing event 'add'
-    var wcsLayer = L.layerGroup();
-
-    // 3. Event Listener: Apa yang terjadi saat layer ini dicentang?
-    wcsLayer.on('add', function() {
-        // Tampilkan pesan edukasi
-        alert("PERHATIAN: Layer WCS bukan untuk ditampilkan di peta!\n\nLayanan ini memberikan DATA ASLI (GeoTIFF). Browser akan otomatis mendownload file tersebut. Silakan buka file hasil download menggunakan QGIS/ArcGIS.");
-
-        // Eksekusi Download
-        window.open(wcsUrl, '_self');
-
-        // Opsional: Matikan lagi centangnya biar ga bingung (karena layer ini cuma tombol download)
-        setTimeout(function(){
-            map.removeLayer(wcsLayer);
-            // Note: Di panel layer mungkin centangnya tetap nyala tergantung plugin, tapi layer sudah removed.
-        }, 1000);
-    });
-
-    // 4. Masukkan ke Panel Layer
-    panelLayers.addOverlay({
-        layer: wcsLayer,
-        name: "<i class='fa-solid fa-download'></i> Download Data Mentah (WCS)", // Pakai ikon biar jelas
-        active: false
-    }, "DATA RASTER");
+    panelLayers.addBaseLayer({
+        layer: layerStatic,
+        name: "Foto Udara (File Statis)"
+    }, "Raster Layers");
 
 
 // ==========================================
