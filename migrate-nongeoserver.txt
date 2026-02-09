@@ -1,0 +1,122 @@
+php artisan make:migration create_adminkwmysql_table
+php artisan make:migration create_jalankwmysql_table
+php artisan make:migration create_masjidkwmysql_table
+
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    public function up(): void
+    {
+        Schema::create('adminkwmysql', function (Blueprint $table) {
+            $table->id();
+            $table->string('feature_id', 50)->nullable()->comment('ID bawaan dari GeoJSON');
+            $table->string('kalurahan');
+            $table->string('padukuhan');
+            $table->double('luas')->default(0)->comment('Satuan Hektar');
+            $table->integer('jumlah_kk')->default(0);
+            $table->integer('jumlah_penduduk')->default(0)->comment('JUM_PDDK');
+            $table->integer('jumlah_laki')->default(0)->comment('JUM_LAKI2');
+            $table->integer('jumlah_perempuan')->default(0)->comment('JUM_PEREMP');
+
+            // Kolom Spatial (Geometry: bisa Polygon/MultiPolygon)
+            // Parameter: nama_kolom, tipe_geometri, srid
+            $table->geometry('geom', 'geometry', 4326);
+
+            $table->timestamps();
+
+            // Index Spatial (Wajib untuk performa query peta)
+            $table->spatialIndex('geom');
+        });
+    }
+
+    public function down(): void
+    {
+        Schema::dropIfExists('adminkwmysql');
+    }
+};
+
+
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    public function up(): void
+    {
+        Schema::create('jalankwmysql', function (Blueprint $table) {
+            $table->id();
+            $table->string('feature_id', 50)->nullable()->comment('ID dari GeoJSON');
+            $table->string('nama')->nullable();
+            $table->double('panjang')->default(0);
+            $table->double('luas')->default(0);
+            $table->double('aset_tanah')->default(0);
+            $table->string('kondisi', 100)->nullable();
+            $table->string('kewenangan', 100)->nullable();
+            $table->string('foto_awal')->nullable();
+            $table->string('foto_akhir')->nullable();
+            $table->double('rer_njop')->default(0);
+            $table->string('status', 100)->nullable();
+            $table->double('lebar')->default(0);
+            $table->string('asal', 100)->nullable();
+            $table->string('layer', 100)->nullable();
+
+            // Kolom Spatial (Geometry: bisa LineString/MultiLineString)
+            $table->geometry('geom', 'geometry', 4326);
+
+            $table->timestamps();
+
+            // Index Spatial
+            $table->spatialIndex('geom');
+        });
+    }
+
+    public function down(): void
+    {
+        Schema::dropIfExists('jalankwmysql');
+    }
+};
+
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    public function up(): void
+    {
+        Schema::create('masjidkwmysql', function (Blueprint $table) {
+            $table->id();
+            $table->string('feature_id', 50)->nullable()->comment('ID dari GeoJSON');
+            $table->string('nama');
+            $table->double('luas_m2')->nullable()->default(0)->comment('Mapping dari LUAS M2');
+            $table->integer('jumlah_jamaah')->default(0)->comment('Mapping dari JUM JAMAAH');
+            $table->string('takmir_cp', 100)->nullable()->comment('Contact Person Takmir');
+            $table->string('no_telepon', 50)->nullable()->comment('Mapping dari NO HENPON');
+            $table->string('foto')->nullable();
+            $table->string('icon_url')->nullable();
+
+            // Kolom Spatial (Geometry: Point)
+            $table->geometry('geom', 'geometry', 4326);
+
+            $table->timestamps();
+
+            // Index Spatial
+            $table->spatialIndex('geom');
+        });
+    }
+
+    public function down(): void
+    {
+        Schema::dropIfExists('masjidkwmysql');
+    }
+};

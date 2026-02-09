@@ -1,0 +1,62 @@
+-- 1. TABEL ADMINISTRASI (Polygon/MultiPolygon)
+-- Sumber: geojson/adminKw.geojson
+-- Properti JS: Padukuhan, Kalurahan, LUAS, JUM_PDDK, JUM_LAKI2, JUM_PEREMP
+CREATE TABLE `adminkwmysql` (
+    `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    `feature_id` VARCHAR(50) NULL COMMENT 'ID bawaan dari GeoJSON',
+    `kalurahan` VARCHAR(255) NOT NULL,
+    `padukuhan` VARCHAR(255) NOT NULL,
+    `luas` DOUBLE DEFAULT 0 COMMENT 'Satuan Hektar',
+    `jumlah_kk` INT DEFAULT 0,
+    `jumlah_penduduk` INT DEFAULT 0 COMMENT 'JUM_PDDK',
+    `jumlah_laki` INT DEFAULT 0 COMMENT 'JUM_LAKI2',
+    `jumlah_perempuan` INT DEFAULT 0 COMMENT 'JUM_PEREMP',
+    `geom` GEOMETRY NOT NULL SRID 4326,
+    `created_at` TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
+    `updated_at` TIMESTAMP NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
+    SPATIAL INDEX(`geom`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- 2. TABEL JALAN (LineString/MultiLineString)
+-- Sumber: geojson/jalankw.geojson
+-- Properti JS: Nama, Kewenangan, Panjang, Lebar, Kondisi, Status
+CREATE TABLE `jalankwmysql` (
+    `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    `feature_id` VARCHAR(50) NULL COMMENT 'ID dari GeoJSON',
+    `nama` VARCHAR(255) NULL,
+    `panjang` DOUBLE DEFAULT 0,
+    `luas` DOUBLE DEFAULT 0,
+    `aset_tanah` DOUBLE DEFAULT 0,
+    `kondisi` VARCHAR(100) NULL,
+    `kewenangan` VARCHAR(100) NULL,
+    `foto_awal` VARCHAR(255) NULL,
+    `foto_akhir` VARCHAR(255) NULL,
+    `rer_njop` DOUBLE DEFAULT 0,
+    `status` VARCHAR(100) NULL,
+    `lebar` DOUBLE DEFAULT 0,
+    `asal` VARCHAR(100) NULL,
+    `layer` VARCHAR(100) NULL,
+    `geom` GEOMETRY NOT NULL SRID 4326,
+    `created_at` TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
+    `updated_at` TIMESTAMP NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
+    SPATIAL INDEX(`geom`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- 3. TABEL MASJID (Point)
+-- Sumber: geojson/masjid.geojson
+-- Properti JS: Nama
+CREATE TABLE `masjidkwmysql` (
+    `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    `feature_id` VARCHAR(50) NULL COMMENT 'ID dari GeoJSON',
+    `nama` VARCHAR(255) NOT NULL,
+    `luas_m2` DOUBLE NULL DEFAULT 0 COMMENT 'Mapping dari LUAS M2',
+    `jumlah_jamaah` INT DEFAULT 0 COMMENT 'Mapping dari JUM JAMAAH',
+    `takmir_cp` VARCHAR(100) NULL COMMENT 'Contact Person Takmir',
+    `no_telepon` VARCHAR(50) NULL COMMENT 'Mapping dari NO HENPON',
+    `foto` VARCHAR(255) NULL,
+    `icon_url` VARCHAR(255) NULL,
+    `geom` GEOMETRY NOT NULL SRID 4326, -- Kolom Spasial (Titik)
+    `created_at` TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
+    `updated_at` TIMESTAMP NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
+    SPATIAL INDEX(`geom`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

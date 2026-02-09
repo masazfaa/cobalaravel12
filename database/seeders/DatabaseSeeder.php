@@ -21,5 +21,12 @@ class DatabaseSeeder extends Seeder
             'name' => 'Test User',
             'email' => 'test@example.com',
         ]);
+
+        $this->call([
+            adminkwmysql::class,   // Data Administrasi
+            jalankwmysql::class,   // Data Jalan
+            masjidkwmysql::class,  // Data Masjid
+            geoserverseeder::class, // Data Geoserver
+        ]);
     }
 }

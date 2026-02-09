@@ -1,0 +1,15 @@
+CREATE TABLE `geoserverdb` (
+    `id` BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    `title` VARCHAR(255) NOT NULL COMMENT 'Nama yang muncul di Panel Layer',
+    `layer_name` VARCHAR(255) NOT NULL COMMENT 'Nama layer di GeoServer (cth: latihan_leaflet:adminkw)',
+    `type` ENUM('vector', 'raster') NOT NULL DEFAULT 'vector',
+    `workspace` VARCHAR(100) NOT NULL DEFAULT 'latihan_leaflet',
+    `base_url` VARCHAR(255) NOT NULL DEFAULT 'http://localhost:8080/geoserver/',
+    `enable_wms` BOOLEAN DEFAULT TRUE COMMENT 'Apakah layer ini punya tampilan visual?',
+    `enable_wfs` BOOLEAN DEFAULT FALSE COMMENT 'Apakah layer ini bisa diklik/search?',
+    `enable_wmts` BOOLEAN DEFAULT FALSE COMMENT 'Khusus Raster/Tile',
+    `is_active` BOOLEAN DEFAULT TRUE COMMENT 'Status default saat peta dimuat',
+    `z_index` INT DEFAULT 0 COMMENT 'Urutan tumpukan layer',
+    `created_at` TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
+    `updated_at` TIMESTAMP NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
