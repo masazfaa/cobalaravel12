@@ -99,62 +99,66 @@ document.addEventListener('DOMContentLoaded', async function () {
     }
 
 
-    // B. LOOPING: Memuat Gedung dari DATABASE
-    // Menggunakan RAW_DATA dari Controller Laravel
+            // --- BAGIAN B: LOOPING MEMUAT GEDUNG DARI DATABASE (CESIUM ION) ---
 
-    if (RAW_DATA.length === 0) {
-        console.warn("⚠️ Data Cesium Ion kosong di Database.");
-    }
-
-    for (const data of RAW_DATA) {
-        try {
-            // Validasi ID Aset
-            if (!data.ion_asset_id) {
-                console.warn(`Data gedung ${data.name} tidak memiliki ion_asset_id.`);
-                continue;
-            }
-
-            // 1. Load Tileset dari Cesium Ion
-            // Perhatikan: Kita pakai 'data.ion_asset_id' sesuai nama kolom DB
-            const tileset = await Cesium.Cesium3DTileset.fromIonAssetId(data.ion_asset_id);
-
-            viewer.scene.primitives.add(tileset);
-
-            // 2. Trik Zoom: Gunakan Bounding Sphere
-            // Kita butuh menunggu tileset siap (ready) untuk dapat koordinat tengahnya
-            await tileset.readyPromise;
-            const center = tileset.boundingSphere.center;
-
-            // 3. Buat Entity "Bayangan" untuk Popup & Pencarian
-            // 3D Tiles tidak punya popup bawaan, jadi kita buat titik transparan di tengahnya
-            const contentHtml = `
-                <div style="padding:10px">
-                    <p><b>${data.name}</b></p>
-                    <div>${data.description || '-'}</div>
-                </div>
-            `;
-
-            const entity = viewer.entities.add({
-                name: data.name,
-                position: center, // Titik tengah aset 3D
-                point: {
-                    pixelSize: 10,
-                    color: Cesium.Color.TRANSPARENT // Titik tidak terlihat
-                },
-                description: contentHtml
+            // 1. MAPPING: Siapkan data agar formatnya rapi
+            const daftarTileset = RAW_DATA.map(function(item) {
+                return {
+                    id: item.ion_asset_id, // ID Kunci dari Cesium Cloud
+                    name: item.name,
+                    // Rakit HTML untuk Popup (Sama persis dengan gaya Self-Hosted)
+                    desc: `
+                        <div style="padding:10px">
+                            <p><b>${item.name}</b></p>
+                            <div>${item.description || '-'}</div>
+                        </div>
+                    `
+                };
             });
 
-            // 4. LINKING: Tempelkan Entity ke Tileset
-            // Ini trik agar saat 3D Tiles diklik, Entity-nya yang terpilih
-            tileset._linkedEntity = entity;
-            tileset._name = data.name; // Simpan nama di tileset juga
+            console.log(`✅ Memuat ${daftarTileset.length} aset Cesium Ion.`);
 
-            console.log(`✅ Berhasil memuat: ${data.name} (ID: ${data.ion_asset_id})`);
+            // 2. LOOPING: Eksekusi muat ke Peta
+            // Kita pakai async di dalam forEach karena Cesium Ion butuh loading internet
+            daftarTileset.forEach(async (data) => {
 
-        } catch (error) {
-            console.error(`❌ Gagal memuat gedung ${data.name} (ID: ${data.ion_asset_id}):`, error);
-        }
-    }
+                // Validasi sederhana
+                if (!data.id) {
+                    console.warn(`Data ${data.name} dilewati karena tidak punya ID Aset.`);
+                    return;
+                }
+
+                try {
+                    // a. Panggil Aset dari Cloud
+                    const tileset = await Cesium.Cesium3DTileset.fromIonAssetId(data.id);
+                    viewer.scene.primitives.add(tileset);
+
+                    // b. Trik Zoom & Titik Tengah (Tunggu sampai aset siap/ready)
+                    await tileset.readyPromise;
+                    const center = tileset.boundingSphere.center;
+
+                    // c. Buat Entity "Bayangan" (Titik Transparan di tengah aset)
+                    // Tujuannya agar Tileset bisa diklik dan muncul popup (karena Tileset aslinya gak punya popup)
+                    const entity = viewer.entities.add({
+                        name: data.name,
+                        position: center,
+                        point: {
+                            pixelSize: 10,
+                            color: Cesium.Color.TRANSPARENT // Titik tidak terlihat
+                        },
+                        description: data.desc // Ambil dari hasil mapping di atas
+                    });
+
+                    // d. Metadata Linking (Agar saat gedung diklik, popup entity yang muncul)
+                    tileset._linkedEntity = entity;
+                    tileset._name = data.name;
+
+                    console.log(`✅ Sukses: ${data.name}`);
+
+                } catch (error) {
+                    console.error(`❌ Gagal: ${data.name}`, error);
+                }
+            });
 
 
     // =========================================

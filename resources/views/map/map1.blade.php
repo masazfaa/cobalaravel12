@@ -12,11 +12,6 @@
 
 @push('js')
 <script>
-    // ===============================================
-    // DATA DARI LARAVEL DATABASE (MySQL)
-    // ===============================================
-    // Kita simpan di variabel window agar bisa diakses di map1.js
-
     window.DATA_ADMIN = @json($adminGeoJson);
     window.DATA_JALAN = @json($jalanGeoJson);
     window.DATA_MASJID = @json($masjidGeoJson);
