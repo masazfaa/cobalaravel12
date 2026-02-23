@@ -35,9 +35,9 @@ class DatabaseSeeder extends Seeder
         ]);
 
         $this->call([
-            adminkwmysql::class,   // Data Administrasi
-            jalankwmysql::class,   // Data Jalan
-            masjidkwmysql::class,  // Data Masjid
+            // adminkwmysql::class,   // Data Administrasi
+            // jalankwmysql::class,   // Data Jalan
+            // masjidkwmysql::class,  // Data Masjid
             geoserverseeder::class, // Data Geoserver
             CesiumDataSeeder::class, // Data Cesium
         ]);

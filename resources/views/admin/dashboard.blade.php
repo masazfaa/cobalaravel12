@@ -57,26 +57,188 @@
                         <div class="tab-content border-0 p-0 mt-4" id="pills-tabContent">
 
                             <div class="tab-pane fade" id="pills-admin" role="tabpanel">
-                                <p class="text-muted"><i>Form CRUD Batas Wilayah (AdminKw) akan dibuat di sesi selanjutnya.</i></p>
+                                <div class="d-flex justify-content-between align-items-center flex-wrap mb-3 gap-2">
+                                    <h5 class="card-title mb-0">Batas Wilayah (Admin)</h5>
+                                    <div class="d-flex align-items-center flex-wrap gap-2">
+                                        <form action="{{ route('dashboard') }}" method="GET" class="d-flex">
+                                            <input type="text" name="search_admin" class="form-control form-control-sm border-primary me-1" placeholder="Cari Padukuhan..." value="{{ request('search_admin') }}">
+                                            <button type="submit" class="btn btn-primary btn-sm text-white"><i class="mdi mdi-magnify"></i></button>
+                                            @if(request('search_admin'))
+                                                <a href="{{ route('dashboard') }}" class="btn btn-secondary btn-sm text-white ms-1"><i class="mdi mdi-close"></i></a>
+                                            @endif
+                                        </form>
+
+                                        <button class="btn btn-primary btn-sm text-white" data-bs-toggle="modal" data-bs-target="#modalTambahAdmin"><i class="mdi mdi-plus-circle me-1"></i> Tambah</button>
+                                        <button class="btn btn-success btn-sm text-white" data-bs-toggle="modal" data-bs-target="#modalImportAdmin"><i class="mdi mdi-upload me-1"></i> Import</button>
+                                        <a href="{{ route('admin-kw.export') }}" class="btn btn-warning btn-sm text-dark"><i class="mdi mdi-download me-1"></i> Export</a>
+                                    </div>
+                                </div>
+                                <div class="table-responsive">
+                                    <table class="table table-hover table-bordered table-sm align-middle">
+                                        <thead class="table-light">
+                                            <tr>
+                                                <th>Padukuhan</th>
+                                                <th>Kalurahan</th>
+                                                <th>Luas (Ha)</th>
+                                                <th>Jml KK</th>
+                                                <th>Penduduk</th>
+                                                <th class="text-center">Aksi</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @forelse($admins as $admin)
+                                            <tr>
+                                                <td class="fw-bold">{{ $admin->padukuhan }}</td>
+                                                <td>{{ $admin->kalurahan }}</td>
+                                                <td>{{ $admin->luas }}</td>
+                                                <td>{{ $admin->jumlah_kk }}</td>
+                                                <td>L: {{ $admin->jumlah_laki }} | P: {{ $admin->jumlah_perempuan }} <br> Total: <b>{{ $admin->jumlah_penduduk }}</b></td>
+                                                <td class="text-center">
+                                                    <button class="btn btn-info btn-sm text-white" data-bs-toggle="modal" data-bs-target="#modalEditAdmin{{ $admin->id }}">
+                                                        <i class="mdi mdi-pencil"></i>
+                                                    </button>
+                                                    <form action="{{ route('admin-kw.destroy', $admin->id) }}" method="POST" class="d-inline" onsubmit="return confirm('Hapus batas wilayah ini?');">
+                                                        @csrf @method('DELETE')
+                                                        <button type="submit" class="btn btn-danger btn-sm text-white"><i class="mdi mdi-delete"></i></button>
+                                                    </form>
+                                                </td>
+                                            </tr>
+
+                                            <div class="modal fade" id="modalEditAdmin{{ $admin->id }}" tabindex="-1" aria-hidden="true">
+                                                <div class="modal-dialog modal-lg text-start">
+                                                    <form action="{{ route('admin-kw.update', $admin->id) }}" method="POST">
+                                                        @csrf @method('PUT')
+                                                        <div class="modal-content">
+                                                            <div class="modal-header"><h5 class="modal-title">Edit Batas Wilayah</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+                                                            <div class="modal-body">
+                                                                <div class="row">
+                                                                    <div class="col-md-6 mb-2"><label class="small fw-bold">Kalurahan</label><input type="text" name="kalurahan" class="form-control" value="{{ $admin->kalurahan }}"></div>
+                                                                    <div class="col-md-6 mb-2"><label class="small fw-bold">Padukuhan</label><input type="text" name="padukuhan" class="form-control" value="{{ $admin->padukuhan }}"></div>
+                                                                    <div class="col-md-3 mb-2"><label class="small fw-bold">Luas (Ha)</label><input type="number" step="any" name="luas" class="form-control" value="{{ $admin->luas }}"></div>
+                                                                    <div class="col-md-3 mb-2"><label class="small fw-bold">Jml KK</label><input type="number" name="jumlah_kk" class="form-control" value="{{ $admin->jumlah_kk }}"></div>
+
+                                                                    <div class="col-md-2 mb-2"><label class="small fw-bold">Jml Pddk</label><input type="number" name="jumlah_penduduk" class="form-control" value="{{ $admin->jumlah_penduduk }}"></div>
+
+                                                                    <div class="col-md-2 mb-2"><label class="small fw-bold">Jml Laki2</label><input type="number" name="jumlah_laki" class="form-control" value="{{ $admin->jumlah_laki }}"></div>
+                                                                    <div class="col-md-2 mb-2"><label class="small fw-bold">Jml Peremp</label><input type="number" name="jumlah_perempuan" class="form-control" value="{{ $admin->jumlah_perempuan }}"></div>
+                                                                    <div class="col-md-12 mb-2">
+                                                                        <label class="small fw-bold">GeoJSON Geometry <span class="text-danger">*</span></label>
+                                                                        <textarea name="geom" class="form-control font-monospace" rows="4" required>{{ $admin->geom_json }}</textarea>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                            <div class="modal-footer"><button type="submit" class="btn btn-primary btn-sm text-white">Update Data</button></div>
+                                                        </div>
+                                                    </form>
+                                                </div>
+                                            </div>
+                                            @empty
+                                            <tr><td colspan="6" class="text-center py-3">Belum ada data Batas Wilayah.</td></tr>
+                                            @endforelse
+                                        </tbody>
+                                    </table>
+                                </div>
+                                <div class="mt-2">{{ $admins->appends(request()->except('admin_page'))->links('pagination::bootstrap-5') }}</div>
                             </div>
+
                             <div class="tab-pane fade" id="pills-jalan" role="tabpanel">
-                                <p class="text-muted"><i>Form CRUD Jaringan Jalan (JalanKw) akan dibuat di sesi selanjutnya.</i></p>
+                                <div class="d-flex justify-content-between align-items-center flex-wrap mb-3 gap-2">
+                                    <h5 class="card-title mb-0">Jaringan Jalan</h5>
+                                    <div class="d-flex align-items-center flex-wrap gap-2">
+                                        <form action="{{ route('dashboard') }}" method="GET" class="d-flex">
+                                            <input type="text" name="search_jalan" class="form-control form-control-sm border-primary me-1" placeholder="Cari Nama Jalan..." value="{{ request('search_jalan') }}">
+                                            <button type="submit" class="btn btn-primary btn-sm text-white"><i class="mdi mdi-magnify"></i></button>
+                                            @if(request('search_jalan'))
+                                                <a href="{{ route('dashboard') }}" class="btn btn-secondary btn-sm text-white ms-1"><i class="mdi mdi-close"></i></a>
+                                            @endif
+                                        </form>
+
+                                        <button class="btn btn-primary btn-sm text-white" data-bs-toggle="modal" data-bs-target="#modalTambahJalan"><i class="mdi mdi-plus-circle me-1"></i> Tambah</button>
+                                        <button class="btn btn-success btn-sm text-white" data-bs-toggle="modal" data-bs-target="#modalImportJalan"><i class="mdi mdi-upload me-1"></i> Import</button>
+                                        <a href="{{ route('jalan-kw.export') }}" class="btn btn-warning btn-sm text-dark"><i class="mdi mdi-download me-1"></i> Export</a>
+                                    </div>
+                                </div>
+                                <div class="table-responsive">
+                                    <table class="table table-hover table-bordered table-sm align-middle">
+                                        <thead class="table-light">
+                                            <tr>
+                                                <th>Nama Jalan</th>
+                                                <th>Panjang (m)</th>
+                                                <th>Lebar (m)</th>
+                                                <th>Kondisi</th>
+                                                <th>Kewenangan</th>
+                                                <th class="text-center">Aksi</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @forelse($jalans as $jalan)
+                                            <tr>
+                                                <td class="fw-bold">{{ $jalan->nama }}</td>
+                                                <td>{{ $jalan->panjang }}</td>
+                                                <td>{{ $jalan->lebar }}</td>
+                                                <td>{{ $jalan->kondisi }}</td>
+                                                <td>{{ $jalan->kewenangan }}</td>
+                                                <td class="text-center">
+                                                    <button class="btn btn-info btn-sm text-white" data-bs-toggle="modal" data-bs-target="#modalEditJalan{{ $jalan->id }}">
+                                                        <i class="mdi mdi-pencil"></i>
+                                                    </button>
+                                                    <form action="{{ route('jalan-kw.destroy', $jalan->id) }}" method="POST" class="d-inline" onsubmit="return confirm('Hapus jalan ini?');">
+                                                        @csrf @method('DELETE')
+                                                        <button type="submit" class="btn btn-danger btn-sm text-white"><i class="mdi mdi-delete"></i></button>
+                                                    </form>
+                                                </td>
+                                            </tr>
+
+                                            <div class="modal fade" id="modalEditJalan{{ $jalan->id }}" tabindex="-1" aria-hidden="true">
+                                                <div class="modal-dialog modal-lg text-start">
+                                                    <form action="{{ route('jalan-kw.update', $jalan->id) }}" method="POST">
+                                                        @csrf @method('PUT')
+                                                        <div class="modal-content">
+                                                            <div class="modal-header"><h5 class="modal-title">Edit Jaringan Jalan</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+                                                            <div class="modal-body">
+                                                                <div class="row">
+                                                                    <div class="col-md-6 mb-2"><label class="small fw-bold">Nama Jalan</label><input type="text" name="nama" class="form-control" value="{{ $jalan->nama }}"></div>
+                                                                    <div class="col-md-3 mb-2"><label class="small fw-bold">Panjang (m)</label><input type="number" step="any" name="panjang" class="form-control" value="{{ $jalan->panjang }}"></div>
+                                                                    <div class="col-md-3 mb-2"><label class="small fw-bold">Lebar (m)</label><input type="number" step="any" name="lebar" class="form-control" value="{{ $jalan->lebar }}"></div>
+                                                                    <div class="col-md-4 mb-2"><label class="small fw-bold">Kondisi</label><input type="text" name="kondisi" class="form-control" value="{{ $jalan->kondisi }}"></div>
+                                                                    <div class="col-md-4 mb-2"><label class="small fw-bold">Kewenangan</label><input type="text" name="kewenangan" class="form-control" value="{{ $jalan->kewenangan }}"></div>
+                                                                    <div class="col-md-4 mb-2"><label class="small fw-bold">Status</label><input type="text" name="status" class="form-control" value="{{ $jalan->status }}"></div>
+                                                                    <div class="col-md-12 mb-2">
+                                                                        <label class="small fw-bold">GeoJSON Geometry <span class="text-danger">*</span></label>
+                                                                        <textarea name="geom" class="form-control font-monospace" rows="4" required>{{ $jalan->geom_json }}</textarea>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                            <div class="modal-footer"><button type="submit" class="btn btn-primary btn-sm text-white">Update Data</button></div>
+                                                        </div>
+                                                    </form>
+                                                </div>
+                                            </div>
+                                            @empty
+                                            <tr><td colspan="6" class="text-center py-3">Belum ada data Jaringan Jalan.</td></tr>
+                                            @endforelse
+                                        </tbody>
+                                    </table>
+                                </div>
+                                <div class="mt-2">{{ $jalans->appends(request()->except('jalan_page'))->links('pagination::bootstrap-5') }}</div>
                             </div>
 
                             <div class="tab-pane fade show active" id="pills-masjid" role="tabpanel">
 
-                                <div class="d-flex justify-content-between align-items-center mb-3">
+                                <div class="d-flex justify-content-between align-items-center flex-wrap mb-3 gap-2">
                                     <h5 class="card-title mb-0">Data Titik Masjid</h5>
-                                    <div>
-                                        <button class="btn btn-primary btn-sm text-white" data-bs-toggle="modal" data-bs-target="#modalTambahMasjid">
-                                            <i class="mdi mdi-plus-circle me-1"></i> Tambah
-                                        </button>
-                                        <button class="btn btn-success btn-sm text-white mx-1" data-bs-toggle="modal" data-bs-target="#modalImportMasjid">
-                                            <i class="mdi mdi-upload me-1"></i> Import
-                                        </button>
-                                        <a href="{{ route('masjid-kw.export') }}" class="btn btn-warning btn-sm text-dark">
-                                            <i class="mdi mdi-download me-1"></i> Export GeoJSON
-                                        </a>
+                                    <div class="d-flex align-items-center flex-wrap gap-2">
+                                        <form action="{{ route('dashboard') }}" method="GET" class="d-flex">
+                                            <input type="text" name="search_masjid" class="form-control form-control-sm border-primary me-1" placeholder="Cari Masjid..." value="{{ request('search_masjid') }}">
+                                            <button type="submit" class="btn btn-primary btn-sm text-white"><i class="mdi mdi-magnify"></i></button>
+                                            @if(request('search_masjid'))
+                                                <a href="{{ route('dashboard') }}" class="btn btn-secondary btn-sm text-white ms-1"><i class="mdi mdi-close"></i></a>
+                                            @endif
+                                        </form>
+
+                                        <button class="btn btn-primary btn-sm text-white" data-bs-toggle="modal" data-bs-target="#modalTambahMasjid"><i class="mdi mdi-plus-circle me-1"></i> Tambah</button>
+                                        <button class="btn btn-success btn-sm text-white" data-bs-toggle="modal" data-bs-target="#modalImportMasjid"><i class="mdi mdi-upload me-1"></i> Import</button>
+                                        <a href="{{ route('masjid-kw.export') }}" class="btn btn-warning btn-sm text-dark"><i class="mdi mdi-download me-1"></i> Export</a>
                                     </div>
                                 </div>
 
@@ -184,6 +346,46 @@
                                                             <div class="modal-footer">
                                                                 <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Batal</button>
                                                                 <button type="submit" class="btn btn-primary btn-sm text-white">Update Data</button>
+                                                            </div>
+                                                        </div>
+                                                    </form>
+                                                </div>
+                                            </div>
+
+                                            <div class="modal fade" id="modalImportAdmin" tabindex="-1" aria-hidden="true">
+                                                <div class="modal-dialog">
+                                                    <form action="{{ route('admin-kw.import') }}" method="POST" enctype="multipart/form-data">
+                                                        @csrf
+                                                        <div class="modal-content">
+                                                            <div class="modal-header">
+                                                                <h5 class="modal-title">Import GeoJSON Batas Wilayah</h5>
+                                                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                                            </div>
+                                                            <div class="modal-body">
+                                                                <input type="file" name="file_geojson" class="form-control" accept=".geojson, .json" required>
+                                                            </div>
+                                                            <div class="modal-footer">
+                                                                <button type="submit" class="btn btn-success btn-sm text-white"><i class="mdi mdi-upload"></i> Import</button>
+                                                            </div>
+                                                        </div>
+                                                    </form>
+                                                </div>
+                                            </div>
+
+                                            <div class="modal fade" id="modalImportJalan" tabindex="-1" aria-hidden="true">
+                                                <div class="modal-dialog">
+                                                    <form action="{{ route('jalan-kw.import') }}" method="POST" enctype="multipart/form-data">
+                                                        @csrf
+                                                        <div class="modal-content">
+                                                            <div class="modal-header">
+                                                                <h5 class="modal-title">Import GeoJSON Jaringan Jalan</h5>
+                                                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                                            </div>
+                                                            <div class="modal-body">
+                                                                <input type="file" name="file_geojson" class="form-control" accept=".geojson, .json" required>
+                                                            </div>
+                                                            <div class="modal-footer">
+                                                                <button type="submit" class="btn btn-success btn-sm text-white"><i class="mdi mdi-upload"></i> Import</button>
                                                             </div>
                                                         </div>
                                                     </form>
@@ -303,4 +505,120 @@
     </div>
 </div>
 
+<div class="modal fade" id="modalTambahAdmin" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg text-start">
+        <form action="{{ route('admin-kw.store') }}" method="POST">
+            @csrf
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Tambah Batas Wilayah</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-6 mb-2"><label class="small fw-bold">Kalurahan</label><input type="text" name="kalurahan" class="form-control"></div>
+                        <div class="col-md-6 mb-2"><label class="small fw-bold">Padukuhan</label><input type="text" name="padukuhan" class="form-control"></div>
+                        <div class="col-md-3 mb-2"><label class="small fw-bold">Luas (Ha)</label><input type="number" step="any" name="luas" class="form-control" value="0"></div>
+                        <div class="col-md-3 mb-2"><label class="small fw-bold">Jml KK</label><input type="number" name="jumlah_kk" class="form-control" value="0"></div>
+
+                        <div class="col-md-2 mb-2"><label class="small fw-bold">Jml Penduduk</label><input type="number" name="jumlah_penduduk" class="form-control" value="0"></div>
+
+                        <div class="col-md-2 mb-2"><label class="small fw-bold">Jml Laki2</label><input type="number" name="jumlah_laki" class="form-control" value="0"></div>
+                        <div class="col-md-2 mb-2"><label class="small fw-bold">Jml Peremp</label><input type="number" name="jumlah_perempuan" class="form-control" value="0"></div>
+                        <div class="col-md-12 mb-2">
+                            <label class="small fw-bold">GeoJSON Geometry <span class="text-danger">*</span></label>
+                            <textarea name="geom" class="form-control font-monospace" rows="4" required placeholder='{"type":"Polygon","coordinates":[[[...]]]}'></textarea>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer"><button type="submit" class="btn btn-primary btn-sm text-white">Simpan Data</button></div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="modal fade" id="modalTambahJalan" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg text-start">
+        <form action="{{ route('jalan-kw.store') }}" method="POST">
+            @csrf
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Tambah Jaringan Jalan</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-6 mb-2"><label class="small fw-bold">Nama Jalan</label><input type="text" name="nama" class="form-control"></div>
+                        <div class="col-md-3 mb-2"><label class="small fw-bold">Panjang (m)</label><input type="number" step="any" name="panjang" class="form-control" value="0"></div>
+                        <div class="col-md-3 mb-2"><label class="small fw-bold">Lebar (m)</label><input type="number" step="any" name="lebar" class="form-control" value="0"></div>
+                        <div class="col-md-4 mb-2"><label class="small fw-bold">Kondisi</label><input type="text" name="kondisi" class="form-control"></div>
+                        <div class="col-md-4 mb-2"><label class="small fw-bold">Kewenangan</label><input type="text" name="kewenangan" class="form-control"></div>
+                        <div class="col-md-4 mb-2"><label class="small fw-bold">Status</label><input type="text" name="status" class="form-control"></div>
+                        <div class="col-md-12 mb-2">
+                            <label class="small fw-bold">GeoJSON Geometry <span class="text-danger">*</span></label>
+                            <textarea name="geom" class="form-control font-monospace" rows="4" required placeholder='{"type":"LineString","coordinates":[[...]]}'></textarea>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer"><button type="submit" class="btn btn-primary btn-sm text-white">Simpan Data</button></div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="modal fade" id="modalImportAdmin" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <form action="{{ route('admin-kw.import') }}" method="POST" enctype="multipart/form-data">
+            @csrf
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Import GeoJSON Batas Wilayah</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="fw-bold small mb-2">Pilih File (.geojson / .json)</label>
+                        <input type="file" name="file_geojson" class="form-control border-success" accept=".geojson, .json" required>
+                        <small class="text-muted mt-2 d-block">
+                            *Pastikan atribut properties-nya sesuai dengan kolom: Kalurahan, Padukuhan, LUAS, JUMLAH_KK, dll.
+                        </small>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Batal</button>
+                    <button type="submit" class="btn btn-success btn-sm text-white"><i class="mdi mdi-upload"></i> Proses Import</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="modal fade" id="modalImportJalan" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <form action="{{ route('jalan-kw.import') }}" method="POST" enctype="multipart/form-data">
+            @csrf
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Import GeoJSON Jaringan Jalan</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="fw-bold small mb-2">Pilih File (.geojson / .json)</label>
+                        <input type="file" name="file_geojson" class="form-control border-success" accept=".geojson, .json" required>
+                        <small class="text-muted mt-2 d-block">
+                            *Pastikan atribut properties-nya sesuai dengan kolom: Nama, Panjang, Lebar, Kondisi, dll.
+                        </small>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Batal</button>
+                    <button type="submit" class="btn btn-success btn-sm text-white"><i class="mdi mdi-upload"></i> Proses Import</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script src="{{ asset('assets/js/dashboard.js') }}"></script>
 @endsection
