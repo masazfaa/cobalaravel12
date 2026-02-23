@@ -20,6 +20,8 @@ class DashboardController extends Controller
         $searchJalan = $request->input('search_jalan');
         $searchMasjid = $request->input('search_masjid');
         $searchGeo = $request->input('search_geoserver');
+        $searchSelf = $request->input('search_self');
+        $searchIon = $request->input('search_ion');
 
         // 1. QUERY ADMIN (+ SEARCH)
         $admins = AdminKwMysql::select('*', DB::raw('ST_AsGeoJSON(geom) as geom_json'))
@@ -62,8 +64,22 @@ class DashboardController extends Controller
             ->paginate(10, ['*'], 'geoserver_page')
             ->appends(['search_geoserver' => $searchGeo]);
 
-        $selfHosteds = CesiumSelfHosted::all();
-        $ions = CesiumIon::all();
+        // 5. QUERY CESIUM SELF HOSTED (+ SEARCH)
+        $selfHosteds = CesiumSelfHosted::when($searchSelf, function ($query, $searchSelf) {
+                return $query->where('name', 'like', "%{$searchSelf}%");
+            })
+            ->orderBy('id', 'desc')
+            ->paginate(10, ['*'], 'self_page')
+            ->appends(['search_self' => $searchSelf]);
+
+        // 6. QUERY CESIUM ION (+ SEARCH)
+        $ions = CesiumIon::when($searchIon, function ($query, $searchIon) {
+                return $query->where('name', 'like', "%{$searchIon}%")
+                             ->orWhere('ion_asset_id', 'like', "%{$searchIon}%");
+            })
+            ->orderBy('id', 'desc')
+            ->paginate(10, ['*'], 'ion_page')
+            ->appends(['search_ion' => $searchIon]);
 
         return view('admin.dashboard', compact('admins', 'jalans', 'masjids', 'geoservers', 'selfHosteds', 'ions'));
     }
@@ -434,5 +450,84 @@ class DashboardController extends Controller
     public function destroyGeoserver($id) {
         GeoserverDb::findOrFail($id)->delete();
         return back()->with('success', 'Data Layer GeoServer dihapus!');
+    }
+
+    // =========================================================
+    // 5. CRUD CESIUM SELF HOSTED (MODEL LOKAL GLTF/GLB)
+    // =========================================================
+    public function storeCesiumSelf(Request $request) {
+        $request->validate([
+            'name' => 'required',
+            'longitude' => 'required|numeric',
+            'latitude' => 'required|numeric',
+            'model_file' => 'required|file' // Wajib upload file
+        ]);
+        try {
+            // PROSES UPLOAD FILE GLB/GLTF
+            $modelPath = null;
+            if ($request->hasFile('model_file')) {
+                $file = $request->file('model_file');
+                $filename = time() . '_' . preg_replace('/\s+/', '_', $file->getClientOriginalName());
+                $file->move(public_path('model3d'), $filename);
+                $modelPath = '/model3d/' . $filename; // Simpan path dengan awalan slash untuk web map
+            }
+
+            CesiumSelfHosted::create([
+                'name' => $request->name,
+                'description' => $request->description,
+                'model_path' => $modelPath,
+                'longitude' => $request->longitude,
+                'latitude' => $request->latitude,
+                'height' => $request->height ?? 0,
+                'heading' => $request->heading ?? 0
+            ]);
+            return back()->with('success', 'Model 3D Lokal berhasil diupload dan ditambahkan!');
+        } catch (\Exception $e) { return back()->with('error', 'Gagal: ' . $e->getMessage()); }
+    }
+
+    public function updateCesiumSelf(Request $request, $id) {
+        $request->validate([
+            'name' => 'required',
+            'longitude' => 'required|numeric',
+            'latitude' => 'required|numeric'
+        ]);
+        try {
+            $selfHosted = CesiumSelfHosted::findOrFail($id);
+            $modelPath = $selfHosted->model_path;
+
+            // JIKA ADA UPLOAD FILE BARU, HAPUS FILE LAMA
+            if ($request->hasFile('model_file')) {
+                if ($modelPath && file_exists(public_path(ltrim($modelPath, '/')))) {
+                    unlink(public_path(ltrim($modelPath, '/')));
+                }
+                $file = $request->file('model_file');
+                $filename = time() . '_' . preg_replace('/\s+/', '_', $file->getClientOriginalName());
+                $file->move(public_path('model3d'), $filename);
+                $modelPath = '/model3d/' . $filename;
+            }
+
+            $selfHosted->update([
+                'name' => $request->name,
+                'description' => $request->description,
+                'model_path' => $modelPath,
+                'longitude' => $request->longitude,
+                'latitude' => $request->latitude,
+                'height' => $request->height ?? 0,
+                'heading' => $request->heading ?? 0
+            ]);
+            return back()->with('success', 'Data Model 3D diperbarui!');
+        } catch (\Exception $e) { return back()->with('error', 'Gagal: ' . $e->getMessage()); }
+    }
+
+    public function destroyCesiumSelf($id) {
+        try {
+            $selfHosted = CesiumSelfHosted::findOrFail($id);
+            // Hapus file fisik dari server biar tidak nyampah
+            if ($selfHosted->model_path && file_exists(public_path(ltrim($selfHosted->model_path, '/')))) {
+                unlink(public_path(ltrim($selfHosted->model_path, '/')));
+            }
+            $selfHosted->delete();
+            return back()->with('success', 'Data Model 3D dihapus!');
+        } catch (\Exception $e) { return back()->with('error', 'Gagal: ' . $e->getMessage()); }
     }
 }

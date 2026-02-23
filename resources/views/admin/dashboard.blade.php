@@ -549,8 +549,72 @@
                         <div class="mt-2">{{ $geoservers->appends(request()->except('geoserver_page'))->links('pagination::bootstrap-5') }}</div>
                     </div>
 
-                    <div class="tab-pane fade" id="cesium-self" role="tabpanel"><p class="p-3">Area Cesium Self Hosted.</p></div>
-                    <div class="tab-pane fade" id="cesium-ion" role="tabpanel"><p class="p-3">Area Cesium Ion.</p></div>
+                    <div class="tab-pane fade" id="cesium-self" role="tabpanel">
+                        <div class="d-flex justify-content-between align-items-center flex-wrap mb-3 gap-2 mt-3">
+                            <div><h5 class="card-title mb-1">Manajemen Model 3D Lokal</h5><p class="text-muted small mb-0">Atur posisi model glTF/GLB di peta.</p></div>
+                            <div class="d-flex align-items-center flex-wrap gap-2">
+                                <form action="{{ route('dashboard') }}" method="GET" class="d-flex">
+                                    <input type="text" name="search_self" class="form-control form-control-sm border-primary me-1" placeholder="Cari Model..." value="{{ request('search_self') }}">
+                                    <button type="submit" class="btn btn-primary btn-sm text-white"><i class="mdi mdi-magnify"></i></button>
+                                    @if(request('search_self')) <a href="{{ route('dashboard') }}" class="btn btn-secondary btn-sm text-white ms-1"><i class="mdi mdi-close"></i></a> @endif
+                                </form>
+                                <button class="btn btn-primary btn-sm text-white" data-bs-toggle="modal" data-bs-target="#modalTambahSelf"><i class="mdi mdi-plus-circle me-1"></i> Tambah Model</button>
+                            </div>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="table table-hover table-bordered table-sm align-middle">
+                                <thead class="table-light"><tr><th>Nama Bangunan</th><th>Path / URL (.gltf)</th><th>Koordinat (Lng, Lat)</th><th>Tinggi & Arah</th><th class="text-center">Aksi</th></tr></thead>
+                                <tbody>
+                                    @forelse($selfHosteds as $self)
+                                    <tr>
+                                        <td class="fw-bold">{{ $self->name }}</td>
+                                        <td class="font-monospace text-muted small">{{ $self->model_path }}</td>
+                                        <td>{{ $self->longitude }}, {{ $self->latitude }}</td>
+                                        <td>H: {{ $self->height }}m | Rot: {{ $self->heading }}&deg;</td>
+                                        <td class="text-center">
+                                            <button class="btn btn-info btn-sm text-white" data-bs-toggle="modal" data-bs-target="#modalEditSelf{{ $self->id }}"><i class="mdi mdi-pencil"></i></button>
+                                            <form action="{{ route('cesium-self.destroy', $self->id) }}" method="POST" class="d-inline" onsubmit="return confirm('Hapus model 3D ini?');">@csrf @method('DELETE')<button type="submit" class="btn btn-danger btn-sm text-white"><i class="mdi mdi-delete"></i></button></form>
+                                        </td>
+                                    </tr>
+                                    @empty <tr><td colspan="5" class="text-center py-4 text-muted">Belum ada model 3D lokal.</td></tr> @endforelse
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="mt-2">{{ $selfHosteds->appends(request()->except('self_page'))->links('pagination::bootstrap-5') }}</div>
+                    </div>
+
+                    <div class="tab-pane fade" id="cesium-ion" role="tabpanel">
+                        <div class="d-flex justify-content-between align-items-center flex-wrap mb-3 gap-2 mt-3">
+                            <div><h5 class="card-title mb-1">Manajemen Asset Cesium Ion</h5><p class="text-muted small mb-0">Panggil 3D Tiles/Photogrammetry dari Cloud.</p></div>
+                            <div class="d-flex align-items-center flex-wrap gap-2">
+                                <form action="{{ route('dashboard') }}" method="GET" class="d-flex">
+                                    <input type="text" name="search_ion" class="form-control form-control-sm border-primary me-1" placeholder="Cari Asset..." value="{{ request('search_ion') }}">
+                                    <button type="submit" class="btn btn-primary btn-sm text-white"><i class="mdi mdi-magnify"></i></button>
+                                    @if(request('search_ion')) <a href="{{ route('dashboard') }}" class="btn btn-secondary btn-sm text-white ms-1"><i class="mdi mdi-close"></i></a> @endif
+                                </form>
+                                <button class="btn btn-primary btn-sm text-white" data-bs-toggle="modal" data-bs-target="#modalTambahIon"><i class="mdi mdi-plus-circle me-1"></i> Tambah Asset</button>
+                            </div>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="table table-hover table-bordered table-sm align-middle">
+                                <thead class="table-light"><tr><th>Nama Lokasi / Asset</th><th>Ion Asset ID</th><th>Deskripsi</th><th class="text-center">Aksi</th></tr></thead>
+                                <tbody>
+                                    @forelse($ions as $ion)
+                                    <tr>
+                                        <td class="fw-bold">{{ $ion->name }}</td>
+                                        <td><span class="badge bg-primary fs-6">{{ $ion->ion_asset_id }}</span></td>
+                                        <td>{{ Str::limit($ion->description, 50) }}</td>
+                                        <td class="text-center">
+                                            <button class="btn btn-info btn-sm text-white" data-bs-toggle="modal" data-bs-target="#modalEditIon{{ $ion->id }}"><i class="mdi mdi-pencil"></i></button>
+                                            <form action="{{ route('cesium-ion.destroy', $ion->id) }}" method="POST" class="d-inline" onsubmit="return confirm('Hapus Asset Ion ini?');">@csrf @method('DELETE')<button type="submit" class="btn btn-danger btn-sm text-white"><i class="mdi mdi-delete"></i></button></form>
+                                        </td>
+                                    </tr>
+                                    @empty <tr><td colspan="4" class="text-center py-4 text-muted">Belum ada asset Ion.</td></tr> @endforelse
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="mt-2">{{ $ions->appends(request()->except('ion_page'))->links('pagination::bootstrap-5') }}</div>
+                    </div>
                 </div>
 
             </div>
@@ -873,6 +937,208 @@
         </form>
     </div>
 </div>
+
+<div class="modal fade" id="modalTambahSelf" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <form action="{{ route('cesium-self.store') }}" method="POST" enctype="multipart/form-data">
+            @csrf
+            <div class="modal-content">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title"><i class="mdi mdi-cube me-2"></i>Tambah Model 3D Lokal</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body bg-light">
+                    <div class="card shadow-sm mb-3 border-0">
+                        <div class="card-body p-3">
+                            <h6 class="card-subtitle mb-3 text-primary fw-bold">1. Informasi & File Model</h6>
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label class="small fw-bold">Nama Gedung / Objek <span class="text-danger">*</span></label>
+                                    <input type="text" name="name" class="form-control" required placeholder="Contoh: Gedung Rektorat UGM">
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="small fw-bold">Upload File Model (.glb / .gltf) <span class="text-danger">*</span></label>
+                                    <input type="file" name="model_file" class="form-control border-primary" accept=".glb, .gltf" required>
+                                </div>
+                                <div class="col-md-12">
+                                    <label class="small fw-bold">Deskripsi Singkat</label>
+                                    <textarea name="description" class="form-control" rows="2" placeholder="Keterangan tambahan untuk popup peta..."></textarea>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card shadow-sm border-0">
+                        <div class="card-body p-3">
+                            <h6 class="card-subtitle mb-3 text-primary fw-bold">2. Penempatan di Peta</h6>
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label class="small fw-bold text-muted">Longitude (X) <span class="text-danger">*</span></label>
+                                    <input type="text" name="longitude" class="form-control" required placeholder="110.37... ">
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="small fw-bold text-muted">Latitude (Y) <span class="text-danger">*</span></label>
+                                    <input type="text" name="latitude" class="form-control" required placeholder="-7.76... ">
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="small fw-bold text-muted">Tinggi / Elevasi (Meter)</label>
+                                    <input type="number" step="any" name="height" class="form-control" value="0">
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="small fw-bold text-muted">Rotasi / Heading (Derajat)</label>
+                                    <input type="number" step="any" name="heading" class="form-control" value="0" placeholder="0 - 360">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer bg-light border-top-0">
+                    <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Batal</button>
+                    <button type="submit" class="btn btn-primary btn-sm text-white"><i class="mdi mdi-content-save"></i> Simpan Data</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+@foreach($selfHosteds as $self)
+<div class="modal fade" id="modalEditSelf{{ $self->id }}" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <form action="{{ route('cesium-self.update', $self->id) }}" method="POST" enctype="multipart/form-data">
+            @csrf @method('PUT')
+            <div class="modal-content">
+                <div class="modal-header bg-info text-white">
+                    <h5 class="modal-title"><i class="mdi mdi-pencil-box me-2"></i>Edit Model 3D Lokal</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body bg-light">
+                    <div class="card shadow-sm mb-3 border-0">
+                        <div class="card-body p-3">
+                            <h6 class="card-subtitle mb-3 text-info fw-bold">1. Informasi & File Model</h6>
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label class="small fw-bold">Nama Gedung / Objek <span class="text-danger">*</span></label>
+                                    <input type="text" name="name" class="form-control" value="{{ $self->name }}" required>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="small fw-bold">Ganti File Model <span class="text-muted fw-normal">(Opsional)</span></label>
+                                    <input type="file" name="model_file" class="form-control" accept=".glb, .gltf">
+                                    @if($self->model_path)
+                                        <small class="text-success mt-1 d-block"><i class="mdi mdi-check"></i> File aktif: {{ basename($self->model_path) }}</small>
+                                    @endif
+                                </div>
+                                <div class="col-md-12">
+                                    <label class="small fw-bold">Deskripsi Singkat</label>
+                                    <textarea name="description" class="form-control" rows="2">{{ $self->description }}</textarea>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card shadow-sm border-0">
+                        <div class="card-body p-3">
+                            <h6 class="card-subtitle mb-3 text-info fw-bold">2. Penempatan di Peta</h6>
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label class="small fw-bold text-muted">Longitude (X) <span class="text-danger">*</span></label>
+                                    <input type="text" name="longitude" class="form-control" value="{{ $self->longitude }}" required>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="small fw-bold text-muted">Latitude (Y) <span class="text-danger">*</span></label>
+                                    <input type="text" name="latitude" class="form-control" value="{{ $self->latitude }}" required>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="small fw-bold text-muted">Tinggi / Elevasi (Meter)</label>
+                                    <input type="number" step="any" name="height" class="form-control" value="{{ $self->height }}">
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="small fw-bold text-muted">Rotasi / Heading (Derajat)</label>
+                                    <input type="number" step="any" name="heading" class="form-control" value="{{ $self->heading }}">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer bg-light border-top-0">
+                    <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Batal</button>
+                    <button type="submit" class="btn btn-info btn-sm text-white"><i class="mdi mdi-content-save"></i> Update Data</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+@endforeach
+
+<div class="modal fade" id="modalTambahIon" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <form action="{{ route('cesium-ion.store') }}" method="POST">
+            @csrf
+            <div class="modal-content">
+                <div class="modal-header bg-dark text-white">
+                    <h5 class="modal-title"><i class="mdi mdi-cloud-upload me-2"></i>Tambah Asset Cesium Ion</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body bg-light">
+                    <div class="card shadow-sm border-0">
+                        <div class="card-body p-3">
+                            <div class="mb-3">
+                                <label class="small fw-bold">Nama Lokasi / Aset <span class="text-danger">*</span></label>
+                                <input type="text" name="name" class="form-control" required placeholder="Contoh: Fotogrametri Kampus UGM">
+                            </div>
+                            <div class="mb-3">
+                                <label class="small fw-bold">Ion Asset ID (Angka) <span class="text-danger">*</span></label>
+                                <input type="number" name="ion_asset_id" class="form-control font-monospace border-dark" required placeholder="Contoh: 1234567">
+                                <small class="text-muted d-block mt-1">Dapatkan ID ini dari dashboard Cesium Ion Anda.</small>
+                            </div>
+                            <div class="mb-2">
+                                <label class="small fw-bold">Deskripsi</label>
+                                <textarea name="description" class="form-control" rows="3" placeholder="Informasi singkat tentang lokasi ini..."></textarea>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer bg-light border-top-0">
+                    <button type="submit" class="btn btn-dark btn-sm text-white"><i class="mdi mdi-content-save"></i> Simpan Data</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+@foreach($ions as $ion)
+<div class="modal fade" id="modalEditIon{{ $ion->id }}" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <form action="{{ route('cesium-ion.update', $ion->id) }}" method="POST">
+            @csrf @method('PUT')
+            <div class="modal-content">
+                <div class="modal-header bg-secondary text-white">
+                    <h5 class="modal-title"><i class="mdi mdi-pencil-box me-2"></i>Edit Asset Cesium Ion</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body bg-light">
+                     <div class="card shadow-sm border-0">
+                        <div class="card-body p-3">
+                            <div class="mb-3">
+                                <label class="small fw-bold">Nama Lokasi / Aset <span class="text-danger">*</span></label>
+                                <input type="text" name="name" class="form-control" value="{{ $ion->name }}" required>
+                            </div>
+                            <div class="mb-3">
+                                <label class="small fw-bold">Ion Asset ID (Angka) <span class="text-danger">*</span></label>
+                                <input type="number" name="ion_asset_id" class="form-control font-monospace border-secondary" value="{{ $ion->ion_asset_id }}" required>
+                            </div>
+                            <div class="mb-2">
+                                <label class="small fw-bold">Deskripsi</label>
+                                <textarea name="description" class="form-control" rows="3">{{ $ion->description }}</textarea>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer bg-light border-top-0">
+                    <button type="submit" class="btn btn-secondary btn-sm text-white"><i class="mdi mdi-content-save"></i> Update Data</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+@endforeach
 
 <script src="{{ asset('assets/js/dashboard.js') }}"></script>
 @endsection

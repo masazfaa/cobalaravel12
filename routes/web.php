@@ -48,6 +48,20 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/dashboard/geoserver', [DashboardController::class, 'storeGeoserver'])->name('geoserver.store');
     Route::put('/dashboard/geoserver/{id}', [DashboardController::class, 'updateGeoserver'])->name('geoserver.update');
     Route::delete('/dashboard/geoserver/{id}', [DashboardController::class, 'destroyGeoserver'])->name('geoserver.destroy');
+
+    // =======================================================
+    // -- CRUD TAB CESIUM SELF HOSTED --
+    // =======================================================
+    Route::post('/dashboard/cesium-self', [DashboardController::class, 'storeCesiumSelf'])->name('cesium-self.store');
+    Route::put('/dashboard/cesium-self/{id}', [DashboardController::class, 'updateCesiumSelf'])->name('cesium-self.update');
+    Route::delete('/dashboard/cesium-self/{id}', [DashboardController::class, 'destroyCesiumSelf'])->name('cesium-self.destroy');
+
+    // =======================================================
+    // -- CRUD TAB CESIUM ION --
+    // =======================================================
+    Route::post('/dashboard/cesium-ion', [DashboardController::class, 'storeCesiumIon'])->name('cesium-ion.store');
+    Route::put('/dashboard/cesium-ion/{id}', [DashboardController::class, 'updateCesiumIon'])->name('cesium-ion.update');
+    Route::delete('/dashboard/cesium-ion/{id}', [DashboardController::class, 'destroyCesiumIon'])->name('cesium-ion.destroy');
 });
 
 Route::middleware('auth')->group(function () {
