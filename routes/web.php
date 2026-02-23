@@ -3,16 +3,17 @@
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\UserController;
 use App\Http\Middleware\IsSuperadmin;
+use App\Http\Controllers\Home;
+use App\Http\Controllers\DashboardController;
 use Illuminate\Support\Facades\Route;
 
 
-Route::get('/', function () {
-    return view('home');
-});
+Route::get('/', [Home::class, 'index']);
+Route::get('/geoserver', [Home::class, 'geoserver']);
+Route::get('/cesium', [Home::class, 'cesium']);
+Route::get('/cesiumion', [Home::class, 'cesiumion']);
 
-Route::get('/dashboard', function () {
-    return view('dashboard');
-})->middleware(['auth', 'verified'])->name('dashboard');
+Route::get('/dashboard', [DashboardController::class, 'index'])->middleware(['auth', 'verified'])->name('dashboard');
 
 Route::middleware('auth')->group(function () {
 
