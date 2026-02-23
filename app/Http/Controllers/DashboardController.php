@@ -19,6 +19,7 @@ class DashboardController extends Controller
         $searchAdmin = $request->input('search_admin');
         $searchJalan = $request->input('search_jalan');
         $searchMasjid = $request->input('search_masjid');
+        $searchGeo = $request->input('search_geoserver');
 
         // 1. QUERY ADMIN (+ SEARCH)
         $admins = AdminKwMysql::select('*', DB::raw('ST_AsGeoJSON(geom) as geom_json'))
@@ -51,7 +52,16 @@ class DashboardController extends Controller
             ->paginate(10, ['*'], 'masjid_page')
             ->appends(['search_masjid' => $searchMasjid]);
 
-        $geoservers = GeoserverDb::all();
+        // 4. QUERY GEOSERVER (+ SEARCH) <-- UBAH BAGIAN INI
+        $geoservers = GeoserverDb::when($searchGeo, function ($query, $searchGeo) {
+                return $query->where('title', 'like', "%{$searchGeo}%")
+                             ->orWhere('layer_name', 'like', "%{$searchGeo}%")
+                             ->orWhere('type', 'like', "%{$searchGeo}%");
+            })
+            ->orderBy('id', 'desc')
+            ->paginate(10, ['*'], 'geoserver_page')
+            ->appends(['search_geoserver' => $searchGeo]);
+
         $selfHosteds = CesiumSelfHosted::all();
         $ions = CesiumIon::all();
 
@@ -377,5 +387,52 @@ class DashboardController extends Controller
         if ($masjid->foto && file_exists(public_path($masjid->foto))) unlink(public_path($masjid->foto));
         $masjid->delete();
         return back()->with('success', 'Data Masjid dihapus!');
+    }
+
+    // =========================================================
+    // 4. CRUD GEOSERVER (DYNAMIC LAYERS)
+    // =========================================================
+    public function storeGeoserver(Request $request) {
+        $request->validate(['title' => 'required', 'layer_name' => 'required', 'type' => 'required']);
+        try {
+            GeoserverDb::create([
+                'title' => $request->title,
+                'layer_name' => $request->layer_name,
+                'workspace' => $request->workspace ?? 'latihan_leaflet',
+                'type' => $request->type,
+                'base_url' => $request->base_url ?? 'http://localhost:8080/geoserver/',
+                'enable_wms' => $request->has('enable_wms'),
+                'enable_wfs' => $request->has('enable_wfs'),
+                'enable_wmts' => $request->has('enable_wmts'),
+                'is_active' => $request->has('is_active'),
+                'z_index' => $request->z_index ?? 1,
+            ]);
+            return back()->with('success', 'Konfigurasi Layer GeoServer ditambahkan!');
+        } catch (\Exception $e) { return back()->with('error', 'Gagal: ' . $e->getMessage()); }
+    }
+
+    public function updateGeoserver(Request $request, $id) {
+        $request->validate(['title' => 'required', 'layer_name' => 'required', 'type' => 'required']);
+        try {
+            $geo = GeoserverDb::findOrFail($id);
+            $geo->update([
+                'title' => $request->title,
+                'layer_name' => $request->layer_name,
+                'workspace' => $request->workspace,
+                'type' => $request->type,
+                'base_url' => $request->base_url,
+                'enable_wms' => $request->has('enable_wms'),
+                'enable_wfs' => $request->has('enable_wfs'),
+                'enable_wmts' => $request->has('enable_wmts'),
+                'is_active' => $request->has('is_active'),
+                'z_index' => $request->z_index,
+            ]);
+            return back()->with('success', 'Konfigurasi Layer GeoServer diperbarui!');
+        } catch (\Exception $e) { return back()->with('error', 'Gagal: ' . $e->getMessage()); }
+    }
+
+    public function destroyGeoserver($id) {
+        GeoserverDb::findOrFail($id)->delete();
+        return back()->with('success', 'Data Layer GeoServer dihapus!');
     }
 }

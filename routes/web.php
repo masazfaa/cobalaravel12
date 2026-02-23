@@ -41,6 +41,13 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::put('/dashboard/masjid-kw/{id}', [DashboardController::class, 'updateMasjidKw'])->name('masjid-kw.update');
     Route::post('/dashboard/masjid-kw/import', [DashboardController::class, 'importMasjidKw'])->name('masjid-kw.import');
     Route::delete('/dashboard/masjid-kw/{id}', [DashboardController::class, 'destroyMasjidKw'])->name('masjid-kw.destroy');
+
+    // =======================================================
+    // -- CRUD TAB GEOSERVER --
+    // =======================================================
+    Route::post('/dashboard/geoserver', [DashboardController::class, 'storeGeoserver'])->name('geoserver.store');
+    Route::put('/dashboard/geoserver/{id}', [DashboardController::class, 'updateGeoserver'])->name('geoserver.update');
+    Route::delete('/dashboard/geoserver/{id}', [DashboardController::class, 'destroyGeoserver'])->name('geoserver.destroy');
 });
 
 Route::middleware('auth')->group(function () {

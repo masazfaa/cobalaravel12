@@ -351,47 +351,6 @@
                                                     </form>
                                                 </div>
                                             </div>
-
-                                            <div class="modal fade" id="modalImportAdmin" tabindex="-1" aria-hidden="true">
-                                                <div class="modal-dialog">
-                                                    <form action="{{ route('admin-kw.import') }}" method="POST" enctype="multipart/form-data">
-                                                        @csrf
-                                                        <div class="modal-content">
-                                                            <div class="modal-header">
-                                                                <h5 class="modal-title">Import GeoJSON Batas Wilayah</h5>
-                                                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                                                            </div>
-                                                            <div class="modal-body">
-                                                                <input type="file" name="file_geojson" class="form-control" accept=".geojson, .json" required>
-                                                            </div>
-                                                            <div class="modal-footer">
-                                                                <button type="submit" class="btn btn-success btn-sm text-white"><i class="mdi mdi-upload"></i> Import</button>
-                                                            </div>
-                                                        </div>
-                                                    </form>
-                                                </div>
-                                            </div>
-
-                                            <div class="modal fade" id="modalImportJalan" tabindex="-1" aria-hidden="true">
-                                                <div class="modal-dialog">
-                                                    <form action="{{ route('jalan-kw.import') }}" method="POST" enctype="multipart/form-data">
-                                                        @csrf
-                                                        <div class="modal-content">
-                                                            <div class="modal-header">
-                                                                <h5 class="modal-title">Import GeoJSON Jaringan Jalan</h5>
-                                                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                                                            </div>
-                                                            <div class="modal-body">
-                                                                <input type="file" name="file_geojson" class="form-control" accept=".geojson, .json" required>
-                                                            </div>
-                                                            <div class="modal-footer">
-                                                                <button type="submit" class="btn btn-success btn-sm text-white"><i class="mdi mdi-upload"></i> Import</button>
-                                                            </div>
-                                                        </div>
-                                                    </form>
-                                                </div>
-                                            </div>
-
                                             @empty
                                             <tr>
                                                 <td colspan="6" class="text-center text-muted py-4">Belum ada data masjid. Silakan tambah atau import.</td>
@@ -408,7 +367,188 @@
 
                     </div>
 
-                    <div class="tab-pane fade" id="geoserver" role="tabpanel"><p class="p-3">Area GeoServer.</p></div>
+                    <div class="tab-pane fade" id="geoserver" role="tabpanel">
+
+                        <div class="d-flex justify-content-between align-items-center flex-wrap mb-3 gap-2 mt-3">
+                            <div>
+                                <h5 class="card-title mb-1">Manajemen Layer GeoServer</h5>
+                                <p class="text-muted small mb-0">Atur endpoint WMS/WFS untuk ditampilkan di peta.</p>
+                            </div>
+                            <div class="d-flex align-items-center flex-wrap gap-2">
+                                <form action="{{ route('dashboard') }}" method="GET" class="d-flex">
+                                    <input type="text" name="search_geoserver" class="form-control form-control-sm border-primary me-1" placeholder="Cari Layer..." value="{{ request('search_geoserver') }}">
+                                    <button type="submit" class="btn btn-primary btn-sm text-white"><i class="mdi mdi-magnify"></i></button>
+                                    @if(request('search_geoserver'))
+                                        <a href="{{ route('dashboard') }}" class="btn btn-secondary btn-sm text-white ms-1"><i class="mdi mdi-close"></i></a>
+                                    @endif
+                                </form>
+                                <button class="btn btn-primary btn-sm text-white" data-bs-toggle="modal" data-bs-target="#modalTambahGeo">
+                                    <i class="mdi mdi-plus-circle me-1"></i> Tambah Layer
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="table-responsive">
+                            <table class="table table-hover table-bordered table-sm align-middle">
+                                <thead class="table-light text-center">
+                                    <tr>
+                                        <th>Layer (Workspace:Name)</th>
+                                        <th class="text-start">Judul Tampilan (Title)</th>
+                                        <th>Tipe</th>
+                                        <th>Layanan Aktif</th>
+                                        <th>Status Peta</th>
+                                        <th>Aksi</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @forelse($geoservers as $geo)
+                                    <tr>
+                                        <td class="text-center font-monospace"><span class="badge bg-light text-dark border">{{ $geo->workspace }}:{{ $geo->layer_name }}</span></td>
+                                        <td class="fw-bold">{{ $geo->title }}</td>
+                                        <td class="text-center">{{ strtoupper($geo->type) }}</td>
+                                        <td class="text-center">
+                                            @if($geo->enable_wms) <span class="badge bg-info text-white" title="Visualisasi Gambar">WMS</span> @endif
+                                            @if($geo->enable_wfs) <span class="badge bg-warning text-dark" title="Interaktif/Pencarian">WFS</span> @endif
+                                            @if($geo->enable_wmts) <span class="badge bg-success text-white" title="Raster Cepat">WMTS</span> @endif
+                                            @if(!$geo->enable_wms && !$geo->enable_wfs && !$geo->enable_wmts) <span class="text-muted small">-Tidak ada-</span> @endif
+                                        </td>
+                                        <td class="text-center">
+                                            @if($geo->is_active)
+                                                <span class="badge rounded-pill bg-success"><i class="mdi mdi-check-circle me-1"></i>ON</span>
+                                            @else
+                                                <span class="badge rounded-pill bg-secondary"><i class="mdi mdi-minus-circle me-1"></i>OFF</span>
+                                            @endif
+                                        </td>
+                                        <td class="text-center">
+                                            <button class="btn btn-info btn-sm text-white" data-bs-toggle="modal" data-bs-target="#modalEditGeo{{ $geo->id }}"><i class="mdi mdi-pencil"></i></button>
+                                            <form action="{{ route('geoserver.destroy', $geo->id) }}" method="POST" class="d-inline" onsubmit="return confirm('Hapus layer ini? Konfigurasi di peta akan hilang!');">
+                                                @csrf @method('DELETE')
+                                                <button type="submit" class="btn btn-danger btn-sm text-white"><i class="mdi mdi-delete"></i></button>
+                                            </form>
+                                        </td>
+                                    </tr>
+
+                                    <div class="modal fade" id="modalEditGeo{{ $geo->id }}" tabindex="-1" aria-hidden="true">
+                                        <div class="modal-dialog modal-lg">
+                                            <form action="{{ route('geoserver.update', $geo->id) }}" method="POST">
+                                                @csrf @method('PUT')
+                                                <div class="modal-content">
+                                                    <div class="modal-header bg-info text-white">
+                                                        <h5 class="modal-title"><i class="mdi mdi-pencil-box me-2"></i>Edit Layer GeoServer</h5>
+                                                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                                                    </div>
+                                                    <div class="modal-body bg-light">
+                                                        <div class="card shadow-sm mb-3">
+                                                            <div class="card-body p-3">
+                                                                <h6 class="card-subtitle mb-3 text-muted fw-bold">1. Identitas Layer</h6>
+                                                                <div class="row g-3">
+                                                                    <div class="col-md-6">
+                                                                        <label class="form-label small fw-bold">Workspace <span class="text-danger">*</span></label>
+                                                                        <input type="text" name="workspace" class="form-control font-monospace" value="{{ $geo->workspace }}" required>
+                                                                    </div>
+                                                                    <div class="col-md-6">
+                                                                        <label class="form-label small fw-bold">Nama Layer (Store Name) <span class="text-danger">*</span></label>
+                                                                        <input type="text" name="layer_name" class="form-control font-monospace" value="{{ $geo->layer_name }}" required>
+                                                                    </div>
+                                                                    <div class="col-12">
+                                                                        <label class="form-label small fw-bold">Judul Tampilan (Title Peta) <span class="text-danger">*</span></label>
+                                                                        <input type="text" name="title" class="form-control fw-bold" value="{{ $geo->title }}" required>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+
+                                                        <div class="card shadow-sm mb-3">
+                                                            <div class="card-body p-3">
+                                                                <h6 class="card-subtitle mb-3 text-muted fw-bold">2. Konfigurasi Server</h6>
+                                                                <div class="row g-3 mb-2">
+                                                                    <div class="col-12">
+                                                                        <label class="form-label small fw-bold">Base URL GeoServer <span class="text-danger">*</span></label>
+                                                                        <div class="input-group">
+                                                                            <span class="input-group-text bg-light"><i class="mdi mdi-server"></i></span>
+                                                                            <input type="url" name="base_url" class="form-control font-monospace" value="{{ $geo->base_url }}" required>
+                                                                        </div>
+                                                                        <div class="form-text small">Contoh: http://localhost:8080/geoserver/ (Akhiri dengan slash '/')</div>
+                                                                    </div>
+                                                                </div>
+                                                                <div class="row g-3">
+                                                                    <div class="col-md-6">
+                                                                        <label class="form-label small fw-bold">Tipe Data</label>
+                                                                        <select name="type" class="form-select">
+                                                                            <option value="vector" {{ $geo->type == 'vector' ? 'selected' : '' }}>Vector (Garis/Poligon/Titik)</option>
+                                                                            <option value="raster" {{ $geo->type == 'raster' ? 'selected' : '' }}>Raster (Citra/Foto Udara)</option>
+                                                                        </select>
+                                                                    </div>
+                                                                    <div class="col-md-6">
+                                                                        <label class="form-label small fw-bold">Z-Index (Tumpukan)</label>
+                                                                        <input type="number" name="z_index" class="form-control" value="{{ $geo->z_index }}" min="0">
+                                                                        <div class="form-text small">Semakin besar angkanya, semakin di atas posisinya.</div>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+
+                                                        <div class="card shadow-sm border-primary">
+                                                            <div class="card-body p-3">
+                                                                <h6 class="card-subtitle mb-3 text-primary fw-bold">3. Layanan & Status Peta</h6>
+                                                                <ul class="list-group list-group-flush">
+                                                                    <li class="list-group-item d-flex justify-content-between align-items-center bg-light ps-0">
+                                                                        <div>
+                                                                            <span class="fw-bold d-block"><i class="mdi mdi-eye me-1 text-info"></i> Enable WMS</span>
+                                                                            <small class="text-muted">Aktifkan visualisasi gambar (wajib untuk tampil).</small>
+                                                                        </div>
+                                                                        <div class="form-check form-switch mb-0">
+                                                                            <input class="form-check-input" type="checkbox" name="enable_wms" value="1" {{ $geo->enable_wms ? 'checked' : '' }} style="transform: scale(1.3);">
+                                                                        </div>
+                                                                    </li>
+                                                                    <li class="list-group-item d-flex justify-content-between align-items-center bg-light ps-0">
+                                                                        <div>
+                                                                            <span class="fw-bold d-block"><i class="mdi mdi-cursor-default-click me-1 text-warning"></i> Enable WFS</span>
+                                                                            <small class="text-muted">Aktifkan fitur klik info dan pencarian (hanya vektor).</small>
+                                                                        </div>
+                                                                        <div class="form-check form-switch mb-0">
+                                                                            <input class="form-check-input" type="checkbox" name="enable_wfs" value="1" {{ $geo->enable_wfs ? 'checked' : '' }} style="transform: scale(1.3);">
+                                                                        </div>
+                                                                    </li>
+                                                                    <li class="list-group-item d-flex justify-content-between align-items-center bg-light ps-0">
+                                                                        <div>
+                                                                            <span class="fw-bold d-block"><i class="mdi mdi-image-filter-hdr me-1 text-success"></i> Enable WMTS</span>
+                                                                            <small class="text-muted">Gunakan GeoWebCache untuk loading raster cepat.</small>
+                                                                        </div>
+                                                                        <div class="form-check form-switch mb-0">
+                                                                            <input class="form-check-input" type="checkbox" name="enable_wmts" value="1" {{ $geo->enable_wmts ? 'checked' : '' }} style="transform: scale(1.3);">
+                                                                        </div>
+                                                                    </li>
+                                                                    <li class="list-group-item d-flex justify-content-between align-items-center bg-success bg-opacity-10 ps-2 rounded mt-2">
+                                                                        <div>
+                                                                            <span class="fw-bold d-block text-success"><i class="mdi mdi-power me-1"></i> STATUS DEFAULT PETA</span>
+                                                                            <small class="text-dark">Apakah layer langsung tampil saat peta dibuka?</small>
+                                                                        </div>
+                                                                        <div class="form-check form-switch mb-0">
+                                                                            <input class="form-check-input" type="checkbox" name="is_active" value="1" {{ $geo->is_active ? 'checked' : '' }} style="transform: scale(1.4);">
+                                                                        </div>
+                                                                    </li>
+                                                                </ul>
+                                                            </div>
+                                                        </div>
+
+                                                    </div> <div class="modal-footer bg-light">
+                                                        <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Batal</button>
+                                                        <button type="submit" class="btn btn-info btn-sm text-white">Simpan Perubahan</button>
+                                                    </div>
+                                                </div>
+                                            </form>
+                                        </div>
+                                    </div>
+                                    @empty
+                                    <tr><td colspan="6" class="text-center py-4 text-muted">Belum ada konfigurasi layer GeoServer. Klik "Tambah Layer" untuk memulai.</td></tr>
+                                    @endforelse
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="mt-2">{{ $geoservers->appends(request()->except('geoserver_page'))->links('pagination::bootstrap-5') }}</div>
+                    </div>
+
                     <div class="tab-pane fade" id="cesium-self" role="tabpanel"><p class="p-3">Area Cesium Self Hosted.</p></div>
                     <div class="tab-pane fade" id="cesium-ion" role="tabpanel"><p class="p-3">Area Cesium Ion.</p></div>
                 </div>
@@ -614,6 +754,120 @@
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Batal</button>
                     <button type="submit" class="btn btn-success btn-sm text-white"><i class="mdi mdi-upload"></i> Proses Import</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="modal fade" id="modalTambahGeo" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <form action="{{ route('geoserver.store') }}" method="POST">
+            @csrf
+            <div class="modal-content">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title"><i class="mdi mdi-plus-box me-2"></i>Tambah Layer GeoServer Baru</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body bg-light">
+
+                    <div class="card shadow-sm mb-3">
+                        <div class="card-body p-3">
+                            <h6 class="card-subtitle mb-3 text-muted fw-bold">1. Identitas Layer</h6>
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label class="form-label small fw-bold">Workspace <span class="text-danger">*</span></label>
+                                    <input type="text" name="workspace" class="form-control font-monospace" value="latihan_leaflet" required placeholder="Contoh: latihan_leaflet">
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label small fw-bold">Nama Layer (Store Name) <span class="text-danger">*</span></label>
+                                    <input type="text" name="layer_name" class="form-control font-monospace" required placeholder="Contoh: adminkw">
+                                </div>
+                                <div class="col-12">
+                                    <label class="form-label small fw-bold">Judul Tampilan (Title Peta) <span class="text-danger">*</span></label>
+                                    <input type="text" name="title" class="form-control fw-bold" required placeholder="Contoh: Batas Wilayah Administrasi">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card shadow-sm mb-3">
+                        <div class="card-body p-3">
+                            <h6 class="card-subtitle mb-3 text-muted fw-bold">2. Konfigurasi Server</h6>
+                            <div class="row g-3 mb-2">
+                                <div class="col-12">
+                                    <label class="form-label small fw-bold">Base URL GeoServer <span class="text-danger">*</span></label>
+                                    <div class="input-group">
+                                        <span class="input-group-text bg-light"><i class="mdi mdi-server"></i></span>
+                                        <input type="url" name="base_url" class="form-control font-monospace" value="http://localhost:8080/geoserver/" required>
+                                    </div>
+                                    <div class="form-text small">Contoh: http://localhost:8080/geoserver/ (Akhiri dengan slash '/')</div>
+                                </div>
+                            </div>
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label class="form-label small fw-bold">Tipe Data</label>
+                                    <select name="type" class="form-select">
+                                        <option value="vector" selected>Vector (Garis/Poligon/Titik)</option>
+                                        <option value="raster">Raster (Citra/Foto Udara)</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label small fw-bold">Z-Index (Tumpukan)</label>
+                                    <input type="number" name="z_index" class="form-control" value="10" min="0">
+                                    <div class="form-text small">Default 10. Semakin besar semakin di atas.</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card shadow-sm border-primary">
+                        <div class="card-body p-3">
+                            <h6 class="card-subtitle mb-3 text-primary fw-bold">3. Layanan & Status Peta</h6>
+                            <ul class="list-group list-group-flush">
+                                <li class="list-group-item d-flex justify-content-between align-items-center bg-light ps-0">
+                                    <div>
+                                        <span class="fw-bold d-block"><i class="mdi mdi-eye me-1 text-info"></i> Enable WMS</span>
+                                        <small class="text-muted">Aktifkan visualisasi gambar (wajib untuk tampil).</small>
+                                    </div>
+                                    <div class="form-check form-switch mb-0">
+                                        <input class="form-check-input" type="checkbox" name="enable_wms" value="1" checked style="transform: scale(1.3);">
+                                    </div>
+                                </li>
+                                <li class="list-group-item d-flex justify-content-between align-items-center bg-light ps-0">
+                                    <div>
+                                        <span class="fw-bold d-block"><i class="mdi mdi-cursor-default-click me-1 text-warning"></i> Enable WFS</span>
+                                        <small class="text-muted">Aktifkan fitur klik info dan pencarian (hanya vektor).</small>
+                                    </div>
+                                    <div class="form-check form-switch mb-0">
+                                        <input class="form-check-input" type="checkbox" name="enable_wfs" value="1" checked style="transform: scale(1.3);">
+                                    </div>
+                                </li>
+                                <li class="list-group-item d-flex justify-content-between align-items-center bg-light ps-0">
+                                    <div>
+                                        <span class="fw-bold d-block"><i class="mdi mdi-image-filter-hdr me-1 text-success"></i> Enable WMTS</span>
+                                        <small class="text-muted">Gunakan GeoWebCache untuk loading raster cepat.</small>
+                                    </div>
+                                    <div class="form-check form-switch mb-0">
+                                        <input class="form-check-input" type="checkbox" name="enable_wmts" value="1" style="transform: scale(1.3);">
+                                    </div>
+                                </li>
+                                <li class="list-group-item d-flex justify-content-between align-items-center bg-success bg-opacity-10 ps-2 rounded mt-2">
+                                    <div>
+                                        <span class="fw-bold d-block text-success"><i class="mdi mdi-power me-1"></i> STATUS DEFAULT PETA</span>
+                                        <small class="text-dark">Apakah layer langsung tampil saat peta dibuka?</small>
+                                    </div>
+                                    <div class="form-check form-switch mb-0">
+                                        <input class="form-check-input" type="checkbox" name="is_active" value="1" checked style="transform: scale(1.4);">
+                                    </div>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+
+                </div> <div class="modal-footer bg-light">
+                    <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Batal</button>
+                    <button type="submit" class="btn btn-primary btn-sm text-white">Simpan Data Layer</button>
                 </div>
             </div>
         </form>
