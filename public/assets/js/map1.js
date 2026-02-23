@@ -562,8 +562,13 @@
                     // --- LOGIKA FOTO ---
                     var htmlFoto = '';
                     if (p.foto) {
-                        // Asumsi path foto disimpan relatif (misal: storage/masjid/a.jpg)
-                        htmlFoto = `<div style="margin-bottom:8px;"><img src="${p.foto}" style="width:100%; height:120px; object-fit:cover; border-radius:4px;"></div>`;
+                        // Cukup tambahin '/' (garis miring) di depan path fotonya.
+                        // Nanti otomatis ngarah ke http://cobalaravel12.test/masjid/foto.jpg
+                        var imgUrl = '/' + p.foto;
+
+                        htmlFoto = `<div style="margin-bottom:8px;">
+                                        <img src="${imgUrl}" style="width:100%; height:120px; object-fit:cover; border-radius:4px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                                    </div>`;
                     }
 
                     // --- SUSUN POPUP ---

@@ -13,7 +13,29 @@ Route::get('/geoserver', [Home::class, 'geoserver']);
 Route::get('/cesium', [Home::class, 'cesium']);
 Route::get('/cesiumion', [Home::class, 'cesiumion']);
 
-Route::get('/dashboard', [DashboardController::class, 'index'])->middleware(['auth', 'verified'])->name('dashboard');
+Route::middleware(['auth', 'verified'])->group(function () {
+    // Dashboard Utama
+    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+
+    // -- CRUD TAB NON GEOSERVER --
+
+    // 1. Admin / Batas Wilayah (Polygon)
+    Route::post('/dashboard/admin-kw', [DashboardController::class, 'storeAdminKw'])->name('admin-kw.store');
+    Route::post('/dashboard/admin-kw/import', [DashboardController::class, 'importAdminKw'])->name('admin-kw.import');
+    Route::delete('/dashboard/admin-kw/{id}', [DashboardController::class, 'destroyAdminKw'])->name('admin-kw.destroy');
+
+    // 2. Jalan (LineString)
+    Route::post('/dashboard/jalan-kw', [DashboardController::class, 'storeJalanKw'])->name('jalan-kw.store');
+    Route::post('/dashboard/jalan-kw/import', [DashboardController::class, 'importJalanKw'])->name('jalan-kw.import');
+    Route::delete('/dashboard/jalan-kw/{id}', [DashboardController::class, 'destroyJalanKw'])->name('jalan-kw.destroy');
+
+    // 3. Masjid (Point)
+    Route::get('/dashboard/masjid-kw/export', [DashboardController::class, 'exportMasjidKw'])->name('masjid-kw.export');
+    Route::post('/dashboard/masjid-kw', [DashboardController::class, 'storeMasjidKw'])->name('masjid-kw.store');
+    Route::post('/dashboard/masjid-kw/import', [DashboardController::class, 'importMasjidKw'])->name('masjid-kw.import');
+    Route::put('/dashboard/masjid-kw/{id}', [DashboardController::class, 'updateMasjidKw'])->name('masjid-kw.update');
+    Route::delete('/dashboard/masjid-kw/{id}', [DashboardController::class, 'destroyMasjidKw'])->name('masjid-kw.destroy');
+});
 
 Route::middleware('auth')->group(function () {
 
