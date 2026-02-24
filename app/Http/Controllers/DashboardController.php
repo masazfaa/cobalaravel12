@@ -278,35 +278,97 @@ class DashboardController extends Controller
 
     public function destroyJalanKw($id) {
         $jalan = JalanKwMysql::findOrFail($id);
-        // Hapus foto jika ada
-        if ($jalan->foto_awal && file_exists(public_path('jalan/' . $jalan->foto_awal))) unlink(public_path('jalan/' . $jalan->foto_awal));
-        if ($jalan->foto_akhir && file_exists(public_path('jalan/' . $jalan->foto_akhir))) unlink(public_path('jalan/' . $jalan->foto_akhir));
+        // Hapus fisik foto dari folder public
+        if ($jalan->foto_awal && file_exists(public_path($jalan->foto_awal))) unlink(public_path($jalan->foto_awal));
+        if ($jalan->foto_akhir && file_exists(public_path($jalan->foto_akhir))) unlink(public_path($jalan->foto_akhir));
         $jalan->delete();
-        return back()->with('success', 'Data Jalan berhasil dihapus!');
+        return back()->with('success', 'Data Jalan dan fotonya berhasil dihapus!');
     }
 
     public function storeJalanKw(Request $request) {
+        $request->validate([
+            'nama' => 'required',
+            'geom' => 'required',
+            'foto_awal' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
+            'foto_akhir' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048'
+        ]);
+
         try {
             $wkt = $this->geojsonToWkt(json_decode($request->geom, true));
             $geom = DB::raw("ST_GeomFromText('{$wkt}', 4326)");
 
+            // PROSES UPLOAD FOTO (SIMPAN KE PUBLIC/JALAN)
+            $fotoAwalPath = null;
+            if ($request->hasFile('foto_awal')) {
+                $file = $request->file('foto_awal');
+                $filename = time() . '_awal_' . preg_replace('/\s+/', '_', $file->getClientOriginalName());
+                $file->move(public_path('jalan'), $filename);
+                $fotoAwalPath = 'jalan/' . $filename; // Simpan path lengkapnya ke DB
+            }
+
+            $fotoAkhirPath = null;
+            if ($request->hasFile('foto_akhir')) {
+                $file = $request->file('foto_akhir');
+                $filename = time() . '_akhir_' . preg_replace('/\s+/', '_', $file->getClientOriginalName());
+                $file->move(public_path('jalan'), $filename);
+                $fotoAkhirPath = 'jalan/' . $filename; // Simpan path lengkapnya ke DB
+            }
+
             JalanKwMysql::create([
-                'nama' => $request->nama, 'panjang' => $request->panjang, 'lebar' => $request->lebar,
-                'kondisi' => $request->kondisi, 'kewenangan' => $request->kewenangan, 'status' => $request->status, 'geom' => $geom
+                'nama' => $request->nama, 'panjang' => $request->panjang ?? 0, 'lebar' => $request->lebar ?? 0,
+                'luas' => $request->luas ?? 0, 'aset_tanah' => $request->aset_tanah ?? 0,
+                'kondisi' => $request->kondisi, 'kewenangan' => $request->kewenangan,
+                'foto_awal' => $fotoAwalPath, 'foto_akhir' => $fotoAkhirPath,
+                'rer_njop' => $request->rer_njop ?? 0, 'status' => $request->status,
+                'asal' => $request->asal, 'layer' => $request->layer, 'geom' => $geom
             ]);
             return back()->with('success', 'Data Jaringan Jalan ditambahkan!');
         } catch (\Exception $e) { return back()->with('error', 'Gagal: ' . $e->getMessage()); }
     }
 
     public function updateJalanKw(Request $request, $id) {
+        $request->validate([
+            'nama' => 'required', 'geom' => 'required',
+            'foto_awal' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048',
+            'foto_akhir' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048'
+        ]);
+
         try {
             $jalan = JalanKwMysql::findOrFail($id);
             $wkt = $this->geojsonToWkt(json_decode($request->geom, true));
             $geom = DB::raw("ST_GeomFromText('{$wkt}', 4326)");
 
+            // UPDATE FOTO AWAL
+            $fotoAwalPath = $jalan->foto_awal;
+            if ($request->hasFile('foto_awal')) {
+                if ($fotoAwalPath && file_exists(public_path($fotoAwalPath))) {
+                    unlink(public_path($fotoAwalPath));
+                }
+                $file = $request->file('foto_awal');
+                $filename = time() . '_awal_' . preg_replace('/\s+/', '_', $file->getClientOriginalName());
+                $file->move(public_path('jalan'), $filename);
+                $fotoAwalPath = 'jalan/' . $filename;
+            }
+
+            // UPDATE FOTO AKHIR
+            $fotoAkhirPath = $jalan->foto_akhir;
+            if ($request->hasFile('foto_akhir')) {
+                if ($fotoAkhirPath && file_exists(public_path($fotoAkhirPath))) {
+                    unlink(public_path($fotoAkhirPath));
+                }
+                $file = $request->file('foto_akhir');
+                $filename = time() . '_akhir_' . preg_replace('/\s+/', '_', $file->getClientOriginalName());
+                $file->move(public_path('jalan'), $filename);
+                $fotoAkhirPath = 'jalan/' . $filename;
+            }
+
             $jalan->update([
-                'nama' => $request->nama, 'panjang' => $request->panjang, 'lebar' => $request->lebar,
-                'kondisi' => $request->kondisi, 'kewenangan' => $request->kewenangan, 'status' => $request->status, 'geom' => $geom
+                'nama' => $request->nama, 'panjang' => $request->panjang ?? 0, 'lebar' => $request->lebar ?? 0,
+                'luas' => $request->luas ?? 0, 'aset_tanah' => $request->aset_tanah ?? 0,
+                'kondisi' => $request->kondisi, 'kewenangan' => $request->kewenangan,
+                'foto_awal' => $fotoAwalPath, 'foto_akhir' => $fotoAkhirPath,
+                'rer_njop' => $request->rer_njop ?? 0, 'status' => $request->status,
+                'asal' => $request->asal, 'layer' => $request->layer, 'geom' => $geom
             ]);
             return back()->with('success', 'Data Jaringan Jalan diperbarui!');
         } catch (\Exception $e) { return back()->with('error', 'Gagal: ' . $e->getMessage()); }
@@ -528,6 +590,46 @@ class DashboardController extends Controller
             }
             $selfHosted->delete();
             return back()->with('success', 'Data Model 3D dihapus!');
+        } catch (\Exception $e) { return back()->with('error', 'Gagal: ' . $e->getMessage()); }
+    }
+
+    // =========================================================
+    // 6. CRUD CESIUM ION (ASSET CLOUD)
+    // =========================================================
+    public function storeCesiumIon(Request $request) {
+        $request->validate([
+            'name' => 'required',
+            'ion_asset_id' => 'required|numeric'
+        ]);
+        try {
+            CesiumIon::create([
+                'name' => $request->name,
+                'description' => $request->description,
+                'ion_asset_id' => $request->ion_asset_id
+            ]);
+            return back()->with('success', 'Asset Cesium Ion ditambahkan!');
+        } catch (\Exception $e) { return back()->with('error', 'Gagal: ' . $e->getMessage()); }
+    }
+
+    public function updateCesiumIon(Request $request, $id) {
+        $request->validate([
+            'name' => 'required',
+            'ion_asset_id' => 'required|numeric'
+        ]);
+        try {
+            CesiumIon::findOrFail($id)->update([
+                'name' => $request->name,
+                'description' => $request->description,
+                'ion_asset_id' => $request->ion_asset_id
+            ]);
+            return back()->with('success', 'Data Asset Ion diperbarui!');
+        } catch (\Exception $e) { return back()->with('error', 'Gagal: ' . $e->getMessage()); }
+    }
+
+    public function destroyCesiumIon($id) {
+        try {
+            CesiumIon::findOrFail($id)->delete();
+            return back()->with('success', 'Data Asset Ion dihapus!');
         } catch (\Exception $e) { return back()->with('error', 'Gagal: ' . $e->getMessage()); }
     }
 }

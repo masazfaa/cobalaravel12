@@ -323,14 +323,16 @@
                     });
 
                     // 3. Cek Foto (Tampilkan jika ada)
-                    // Asumsi: Path di database sudah lengkap (misal: 'storage/foto/jalan1.jpg')
-                    // Jika belum, tambahkan prefix path folder di depannya.
                     var htmlFoto = '';
+
+                    // Kita tambahkan '/' di depan path biar browser ngarahin ke public directory dengan benar
                     if (p.foto_awal) {
-                        htmlFoto += `<div style="margin-top:5px;"><small>Foto Awal:</small><br><img src="${p.foto_awal}" style="width:100%; border-radius:4px;"></div>`;
+                        var imgAwal = p.foto_awal.startsWith('http') ? p.foto_awal : '/' + p.foto_awal;
+                        htmlFoto += `<div style="margin-top:5px;"><small class="fw-bold">Foto Awal:</small><br><img src="${imgAwal}" style="width:100%; height:120px; object-fit:cover; border-radius:4px; border:1px solid #ccc;"></div>`;
                     }
                     if (p.foto_akhir) {
-                        htmlFoto += `<div style="margin-top:5px;"><small>Foto Akhir:</small><br><img src="${p.foto_akhir}" style="width:100%; border-radius:4px;"></div>`;
+                        var imgAkhir = p.foto_akhir.startsWith('http') ? p.foto_akhir : '/' + p.foto_akhir;
+                        htmlFoto += `<div style="margin-top:5px;"><small class="fw-bold">Foto Akhir:</small><br><img src="${imgAkhir}" style="width:100%; height:120px; object-fit:cover; border-radius:4px; border:1px solid #ccc;"></div>`;
                     }
 
                     // 4. Susun Popup (Tabel Lengkap)

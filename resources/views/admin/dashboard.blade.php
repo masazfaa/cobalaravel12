@@ -5,7 +5,6 @@
 @section('content')
 <div class="row">
     <div class="col-sm-12">
-
         @if(session('success'))
             <div class="alert alert-success alert-dismissible fade show shadow-sm" role="alert">
                 <i class="mdi mdi-check-circle me-2"></i>{{ session('success') }}
@@ -16,6 +15,25 @@
         @if(session('error'))
             <div class="alert alert-danger alert-dismissible fade show shadow-sm" role="alert">
                 <i class="mdi mdi-alert-circle me-2"></i>{{ session('error') }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        @endif
+
+        @if(session('error'))
+            <div class="alert alert-danger alert-dismissible fade show shadow-sm" role="alert">
+                <i class="mdi mdi-alert-circle me-2"></i>{{ session('error') }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        @endif
+
+        @if($errors->any())
+            <div class="alert alert-warning alert-dismissible fade show shadow-sm" role="alert">
+                <strong><i class="mdi mdi-alert-outline me-2"></i>Oops! Ada inputan yang salah:</strong>
+                <ul class="mb-0 mt-1">
+                    @foreach($errors->all() as $error)
+                        <li>{{ $error }}</li>
+                    @endforeach
+                </ul>
                 <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
             </div>
         @endif
@@ -104,34 +122,6 @@
                                                 </td>
                                             </tr>
 
-                                            <div class="modal fade" id="modalEditAdmin{{ $admin->id }}" tabindex="-1" aria-hidden="true">
-                                                <div class="modal-dialog modal-lg text-start">
-                                                    <form action="{{ route('admin-kw.update', $admin->id) }}" method="POST">
-                                                        @csrf @method('PUT')
-                                                        <div class="modal-content">
-                                                            <div class="modal-header"><h5 class="modal-title">Edit Batas Wilayah</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
-                                                            <div class="modal-body">
-                                                                <div class="row">
-                                                                    <div class="col-md-6 mb-2"><label class="small fw-bold">Kalurahan</label><input type="text" name="kalurahan" class="form-control" value="{{ $admin->kalurahan }}"></div>
-                                                                    <div class="col-md-6 mb-2"><label class="small fw-bold">Padukuhan</label><input type="text" name="padukuhan" class="form-control" value="{{ $admin->padukuhan }}"></div>
-                                                                    <div class="col-md-3 mb-2"><label class="small fw-bold">Luas (Ha)</label><input type="number" step="any" name="luas" class="form-control" value="{{ $admin->luas }}"></div>
-                                                                    <div class="col-md-3 mb-2"><label class="small fw-bold">Jml KK</label><input type="number" name="jumlah_kk" class="form-control" value="{{ $admin->jumlah_kk }}"></div>
-
-                                                                    <div class="col-md-2 mb-2"><label class="small fw-bold">Jml Pddk</label><input type="number" name="jumlah_penduduk" class="form-control" value="{{ $admin->jumlah_penduduk }}"></div>
-
-                                                                    <div class="col-md-2 mb-2"><label class="small fw-bold">Jml Laki2</label><input type="number" name="jumlah_laki" class="form-control" value="{{ $admin->jumlah_laki }}"></div>
-                                                                    <div class="col-md-2 mb-2"><label class="small fw-bold">Jml Peremp</label><input type="number" name="jumlah_perempuan" class="form-control" value="{{ $admin->jumlah_perempuan }}"></div>
-                                                                    <div class="col-md-12 mb-2">
-                                                                        <label class="small fw-bold">GeoJSON Geometry <span class="text-danger">*</span></label>
-                                                                        <textarea name="geom" class="form-control font-monospace" rows="4" required>{{ $admin->geom_json }}</textarea>
-                                                                    </div>
-                                                                </div>
-                                                            </div>
-                                                            <div class="modal-footer"><button type="submit" class="btn btn-primary btn-sm text-white">Update Data</button></div>
-                                                        </div>
-                                                    </form>
-                                                </div>
-                                            </div>
                                             @empty
                                             <tr><td colspan="6" class="text-center py-3">Belum ada data Batas Wilayah.</td></tr>
                                             @endforelse
@@ -160,62 +150,74 @@
                                 </div>
                                 <div class="table-responsive">
                                     <table class="table table-hover table-bordered table-sm align-middle">
-                                        <thead class="table-light">
+                                        <thead class="table-light text-center">
                                             <tr>
-                                                <th>Nama Jalan</th>
-                                                <th>Panjang (m)</th>
-                                                <th>Lebar (m)</th>
-                                                <th>Kondisi</th>
-                                                <th>Kewenangan</th>
+                                                <th class="text-start">Nama Jalan & Layer</th>
+                                                <th>Preview Foto</th>
+                                                <th>Dimensi (P/L)</th>
+                                                <th>Kondisi & Status</th>
+                                                <th>Info Aset & NJOP</th>
                                                 <th class="text-center">Aksi</th>
                                             </tr>
                                         </thead>
                                         <tbody>
                                             @forelse($jalans as $jalan)
                                             <tr>
-                                                <td class="fw-bold">{{ $jalan->nama }}</td>
-                                                <td>{{ $jalan->panjang }}</td>
-                                                <td>{{ $jalan->lebar }}</td>
-                                                <td>{{ $jalan->kondisi }}</td>
-                                                <td>{{ $jalan->kewenangan }}</td>
+                                                <td>
+                                                    <span class="fw-bold text-primary">{{ $jalan->nama }}</span><br>
+                                                    <small class="text-muted"><i class="mdi mdi-layers me-1"></i>{{ $jalan->layer ?? 'Tanpa Layer' }}</small>
+                                                </td>
                                                 <td class="text-center">
-                                                    <button class="btn btn-info btn-sm text-white" data-bs-toggle="modal" data-bs-target="#modalEditJalan{{ $jalan->id }}">
-                                                        <i class="mdi mdi-pencil"></i>
-                                                    </button>
-                                                    <form action="{{ route('jalan-kw.destroy', $jalan->id) }}" method="POST" class="d-inline" onsubmit="return confirm('Hapus jalan ini?');">
+                                                    <div class="d-flex justify-content-center gap-2">
+                                                        <div class="position-relative">
+                                                            @if($jalan->foto_awal)
+                                                                <img src="{{ asset($jalan->foto_awal) }}" alt="Awal" class="rounded shadow-sm" style="width: 50px; height: 50px; object-fit: cover;" title="Foto Awal">
+                                                            @else
+                                                                <div class="rounded bg-light text-muted d-flex justify-content-center align-items-center shadow-sm border" style="width: 50px; height: 50px;" title="Tidak ada foto awal">
+                                                                    <i class="mdi mdi-image-off fs-5"></i>
+                                                                </div>
+                                                            @endif
+                                                            <span class="badge bg-dark position-absolute bottom-0 start-50 translate-middle-x" style="font-size: 0.6rem; margin-bottom: -10px;">Awal</span>
+                                                        </div>
+
+                                                        <div class="position-relative">
+                                                            @if($jalan->foto_akhir)
+                                                                <img src="{{ asset($jalan->foto_akhir) }}" alt="Akhir" class="rounded shadow-sm" style="width: 50px; height: 50px; object-fit: cover;" title="Foto Akhir">
+                                                            @else
+                                                                <div class="rounded bg-light text-muted d-flex justify-content-center align-items-center shadow-sm border" style="width: 50px; height: 50px;" title="Tidak ada foto akhir">
+                                                                    <i class="mdi mdi-image-off fs-5"></i>
+                                                                </div>
+                                                            @endif
+                                                            <span class="badge bg-dark position-absolute bottom-0 start-50 translate-middle-x" style="font-size: 0.6rem; margin-bottom: -10px;">Akhir</span>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                                <td>
+                                                    <small>
+                                                        P: <b>{{ $jalan->panjang }}m</b> | L: <b>{{ $jalan->lebar }}m</b><br>
+                                                        Luas: <b>{{ $jalan->luas }} m&sup2;</b>
+                                                    </small>
+                                                </td>
+                                                <td>
+                                                    <span class="badge bg-info mb-1">{{ $jalan->kondisi }}</span><br>
+                                                    <small class="text-muted"><i class="mdi mdi-sign-direction"></i> {{ $jalan->status }}</small><br>
+                                                    <small class="text-muted"><i class="mdi mdi-bank"></i> {{ $jalan->kewenangan }}</small>
+                                                </td>
+                                                <td>
+                                                    <small class="d-block text-success fw-bold">Aset: Rp {{ number_format($jalan->aset_tanah, 0, ',', '.') }}</small>
+                                                    <small class="d-block text-warning text-dark fw-bold">NJOP: Rp {{ number_format($jalan->rer_njop, 0, ',', '.') }}</small>
+                                                    <small class="text-muted fst-italic">Asal: {{ $jalan->asal ?? '-' }}</small>
+                                                </td>
+                                                <td class="text-center align-middle">
+                                                    <button class="btn btn-info btn-sm text-white mb-1 w-100" data-bs-toggle="modal" data-bs-target="#modalEditJalan{{ $jalan->id }}"><i class="mdi mdi-pencil"></i> Edit</button><br>
+                                                    <form action="{{ route('jalan-kw.destroy', $jalan->id) }}" method="POST" onsubmit="return confirm('Yakin hapus data dan foto jalan ini?');">
                                                         @csrf @method('DELETE')
-                                                        <button type="submit" class="btn btn-danger btn-sm text-white"><i class="mdi mdi-delete"></i></button>
+                                                        <button type="submit" class="btn btn-danger btn-sm text-white w-100"><i class="mdi mdi-delete"></i> Hapus</button>
                                                     </form>
                                                 </td>
                                             </tr>
-
-                                            <div class="modal fade" id="modalEditJalan{{ $jalan->id }}" tabindex="-1" aria-hidden="true">
-                                                <div class="modal-dialog modal-lg text-start">
-                                                    <form action="{{ route('jalan-kw.update', $jalan->id) }}" method="POST">
-                                                        @csrf @method('PUT')
-                                                        <div class="modal-content">
-                                                            <div class="modal-header"><h5 class="modal-title">Edit Jaringan Jalan</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
-                                                            <div class="modal-body">
-                                                                <div class="row">
-                                                                    <div class="col-md-6 mb-2"><label class="small fw-bold">Nama Jalan</label><input type="text" name="nama" class="form-control" value="{{ $jalan->nama }}"></div>
-                                                                    <div class="col-md-3 mb-2"><label class="small fw-bold">Panjang (m)</label><input type="number" step="any" name="panjang" class="form-control" value="{{ $jalan->panjang }}"></div>
-                                                                    <div class="col-md-3 mb-2"><label class="small fw-bold">Lebar (m)</label><input type="number" step="any" name="lebar" class="form-control" value="{{ $jalan->lebar }}"></div>
-                                                                    <div class="col-md-4 mb-2"><label class="small fw-bold">Kondisi</label><input type="text" name="kondisi" class="form-control" value="{{ $jalan->kondisi }}"></div>
-                                                                    <div class="col-md-4 mb-2"><label class="small fw-bold">Kewenangan</label><input type="text" name="kewenangan" class="form-control" value="{{ $jalan->kewenangan }}"></div>
-                                                                    <div class="col-md-4 mb-2"><label class="small fw-bold">Status</label><input type="text" name="status" class="form-control" value="{{ $jalan->status }}"></div>
-                                                                    <div class="col-md-12 mb-2">
-                                                                        <label class="small fw-bold">GeoJSON Geometry <span class="text-danger">*</span></label>
-                                                                        <textarea name="geom" class="form-control font-monospace" rows="4" required>{{ $jalan->geom_json }}</textarea>
-                                                                    </div>
-                                                                </div>
-                                                            </div>
-                                                            <div class="modal-footer"><button type="submit" class="btn btn-primary btn-sm text-white">Update Data</button></div>
-                                                        </div>
-                                                    </form>
-                                                </div>
-                                            </div>
                                             @empty
-                                            <tr><td colspan="6" class="text-center py-3">Belum ada data Jaringan Jalan.</td></tr>
+                                            <tr><td colspan="6" class="text-center py-4 text-muted">Belum ada data Jaringan Jalan.</td></tr>
                                             @endforelse
                                         </tbody>
                                     </table>
@@ -714,36 +716,154 @@
         <form action="{{ route('admin-kw.store') }}" method="POST">
             @csrf
             <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Tambah Batas Wilayah</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title"><i class="mdi mdi-map-marker-path me-2"></i>Tambah Batas Wilayah</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                 </div>
-                <div class="modal-body">
-                    <div class="row">
-                        <div class="col-md-6 mb-2"><label class="small fw-bold">Kalurahan</label><input type="text" name="kalurahan" class="form-control"></div>
-                        <div class="col-md-6 mb-2"><label class="small fw-bold">Padukuhan</label><input type="text" name="padukuhan" class="form-control"></div>
-                        <div class="col-md-3 mb-2"><label class="small fw-bold">Luas (Ha)</label><input type="number" step="any" name="luas" class="form-control" value="0"></div>
-                        <div class="col-md-3 mb-2"><label class="small fw-bold">Jml KK</label><input type="number" name="jumlah_kk" class="form-control" value="0"></div>
-
-                        <div class="col-md-2 mb-2"><label class="small fw-bold">Jml Penduduk</label><input type="number" name="jumlah_penduduk" class="form-control" value="0"></div>
-
-                        <div class="col-md-2 mb-2"><label class="small fw-bold">Jml Laki2</label><input type="number" name="jumlah_laki" class="form-control" value="0"></div>
-                        <div class="col-md-2 mb-2"><label class="small fw-bold">Jml Peremp</label><input type="number" name="jumlah_perempuan" class="form-control" value="0"></div>
-                        <div class="col-md-12 mb-2">
-                            <label class="small fw-bold">GeoJSON Geometry <span class="text-danger">*</span></label>
-                            <textarea name="geom" class="form-control font-monospace" rows="4" required placeholder='{"type":"Polygon","coordinates":[[[...]]]}'></textarea>
+                <div class="modal-body bg-light">
+                    <div class="card shadow-sm border-0 mb-3">
+                        <div class="card-body p-3">
+                            <h6 class="card-subtitle mb-3 text-primary fw-bold">1. Informasi Wilayah & Luas</h6>
+                            <div class="row g-3">
+                                <div class="col-md-5">
+                                    <label class="small fw-bold">Kalurahan <span class="text-danger">*</span></label>
+                                    <input type="text" name="kalurahan" class="form-control" required placeholder="Contoh: KARANGWUNI">
+                                </div>
+                                <div class="col-md-5">
+                                    <label class="small fw-bold">Padukuhan <span class="text-danger">*</span></label>
+                                    <input type="text" name="padukuhan" class="form-control" required placeholder="Contoh: KEBOAN">
+                                </div>
+                                <div class="col-md-2">
+                                    <label class="small fw-bold">Luas (Ha)</label>
+                                    <input type="number" step="any" name="luas" class="form-control" value="0">
+                                </div>
+                            </div>
                         </div>
                     </div>
+
+                    <div class="card shadow-sm border-0 mb-3">
+                        <div class="card-body p-3">
+                            <h6 class="card-subtitle mb-3 text-primary fw-bold">2. Data Demografi Penduduk</h6>
+                            <div class="row g-3">
+                                <div class="col-md-3">
+                                    <label class="small fw-bold text-muted">Jumlah KK</label>
+                                    <input type="number" name="jumlah_kk" class="form-control" value="0">
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="small fw-bold text-primary">Total Penduduk</label>
+                                    <input type="number" name="jumlah_penduduk" class="form-control border-primary bg-opacity-10" value="0" required>
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="small fw-bold text-info">Jml Laki-Laki</label>
+                                    <input type="number" name="jumlah_laki" class="form-control border-info" value="0">
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="small fw-bold text-danger">Jml Perempuan</label>
+                                    <input type="number" name="jumlah_perempuan" class="form-control border-danger" value="0">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card shadow-sm border-0">
+                        <div class="card-body p-3">
+                            <h6 class="card-subtitle mb-3 text-primary fw-bold">3. Data Spasial (WGS84)</h6>
+                            <div class="mb-2">
+                                <label class="small fw-bold text-danger">GeoJSON Geometry *</label>
+                                <textarea name="geom" class="form-control font-monospace" rows="4" required placeholder='{"type":"Polygon","coordinates":[[[...]]]}'></textarea>
+                            </div>
+                        </div>
+                    </div>
+
                 </div>
-                <div class="modal-footer"><button type="submit" class="btn btn-primary btn-sm text-white">Simpan Data</button></div>
+                <div class="modal-footer bg-light border-top-0">
+                    <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Batal</button>
+                    <button type="submit" class="btn btn-primary btn-sm text-white"><i class="mdi mdi-content-save"></i> Simpan Data</button>
+                </div>
             </div>
         </form>
     </div>
 </div>
 
+@foreach($admins as $admin)
+<div class="modal fade" id="modalEditAdmin{{ $admin->id }}" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg text-start">
+        <form action="{{ route('admin-kw.update', $admin->id) }}" method="POST">
+            @csrf @method('PUT')
+            <div class="modal-content">
+                <div class="modal-header bg-info text-white">
+                    <h5 class="modal-title"><i class="mdi mdi-pencil-box me-2"></i>Edit Batas Wilayah</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body bg-light">
+                    <div class="card shadow-sm border-0 mb-3">
+                        <div class="card-body p-3">
+                            <h6 class="card-subtitle mb-3 text-info fw-bold">1. Informasi Wilayah & Luas</h6>
+                            <div class="row g-3">
+                                <div class="col-md-5">
+                                    <label class="small fw-bold">Kalurahan <span class="text-danger">*</span></label>
+                                    <input type="text" name="kalurahan" class="form-control" value="{{ $admin->kalurahan }}" required>
+                                </div>
+                                <div class="col-md-5">
+                                    <label class="small fw-bold">Padukuhan <span class="text-danger">*</span></label>
+                                    <input type="text" name="padukuhan" class="form-control" value="{{ $admin->padukuhan }}" required>
+                                </div>
+                                <div class="col-md-2">
+                                    <label class="small fw-bold">Luas (Ha)</label>
+                                    <input type="number" step="any" name="luas" class="form-control" value="{{ $admin->luas }}">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card shadow-sm border-0 mb-3">
+                        <div class="card-body p-3">
+                            <h6 class="card-subtitle mb-3 text-info fw-bold">2. Data Demografi Penduduk</h6>
+                            <div class="row g-3">
+                                <div class="col-md-3">
+                                    <label class="small fw-bold text-muted">Jumlah KK</label>
+                                    <input type="number" name="jumlah_kk" class="form-control" value="{{ $admin->jumlah_kk }}">
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="small fw-bold text-primary">Total Penduduk</label>
+                                    <input type="number" name="jumlah_penduduk" class="form-control border-primary bg-opacity-10 fw-bold" value="{{ $admin->jumlah_penduduk }}" required>
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="small fw-bold text-info">Jml Laki-Laki</label>
+                                    <input type="number" name="jumlah_laki" class="form-control border-info" value="{{ $admin->jumlah_laki }}">
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="small fw-bold text-danger">Jml Perempuan</label>
+                                    <input type="number" name="jumlah_perempuan" class="form-control border-danger" value="{{ $admin->jumlah_perempuan }}">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card shadow-sm border-0">
+                        <div class="card-body p-3">
+                            <h6 class="card-subtitle mb-3 text-info fw-bold">3. Data Spasial (WGS84)</h6>
+                            <div class="mb-2">
+                                <label class="small fw-bold text-danger">GeoJSON Geometry *</label>
+                                <textarea name="geom" class="form-control font-monospace text-muted" rows="4" required>{{ $admin->geom_json }}</textarea>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+                <div class="modal-footer bg-light border-top-0">
+                    <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Batal</button>
+                    <button type="submit" class="btn btn-info btn-sm text-white"><i class="mdi mdi-content-save"></i> Update Data</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+@endforeach
+
 <div class="modal fade" id="modalTambahJalan" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-lg text-start">
-        <form action="{{ route('jalan-kw.store') }}" method="POST">
+        <form action="{{ route('jalan-kw.store') }}" method="POST" enctype="multipart/form-data">
             @csrf
             <div class="modal-content">
                 <div class="modal-header">
@@ -751,15 +871,27 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
-                    <div class="row">
-                        <div class="col-md-6 mb-2"><label class="small fw-bold">Nama Jalan</label><input type="text" name="nama" class="form-control"></div>
+                    <div class="row g-2">
+                        <div class="col-md-12 mb-2"><label class="small fw-bold">Nama Jalan *</label><input type="text" name="nama" class="form-control" required></div>
+
                         <div class="col-md-3 mb-2"><label class="small fw-bold">Panjang (m)</label><input type="number" step="any" name="panjang" class="form-control" value="0"></div>
                         <div class="col-md-3 mb-2"><label class="small fw-bold">Lebar (m)</label><input type="number" step="any" name="lebar" class="form-control" value="0"></div>
-                        <div class="col-md-4 mb-2"><label class="small fw-bold">Kondisi</label><input type="text" name="kondisi" class="form-control"></div>
-                        <div class="col-md-4 mb-2"><label class="small fw-bold">Kewenangan</label><input type="text" name="kewenangan" class="form-control"></div>
-                        <div class="col-md-4 mb-2"><label class="small fw-bold">Status</label><input type="text" name="status" class="form-control"></div>
+                        <div class="col-md-3 mb-2"><label class="small fw-bold">Luas</label><input type="number" step="any" name="luas" class="form-control" value="0"></div>
+                        <div class="col-md-3 mb-2"><label class="small fw-bold">Aset Tanah (Rp)</label><input type="number" step="any" name="aset_tanah" class="form-control" value="0"></div>
+
+                        <div class="col-md-4 mb-2"><label class="small fw-bold">Kondisi</label><input type="text" name="kondisi" class="form-control" placeholder="Contoh: BETON-BAIK"></div>
+                        <div class="col-md-4 mb-2"><label class="small fw-bold">Kewenangan</label><input type="text" name="kewenangan" class="form-control" placeholder="Contoh: PEMKAL"></div>
+                        <div class="col-md-4 mb-2"><label class="small fw-bold">Status</label><input type="text" name="status" class="form-control" placeholder="Contoh: Jalan Desa"></div>
+
+                        <div class="col-md-4 mb-2"><label class="small fw-bold">Rata2 NJOP (Rp)</label><input type="number" step="any" name="rer_njop" class="form-control" value="0"></div>
+                        <div class="col-md-4 mb-2"><label class="small fw-bold">Asal</label><input type="text" name="asal" class="form-control" placeholder="Contoh: Hibah"></div>
+                        <div class="col-md-4 mb-2"><label class="small fw-bold">Layer Group</label><input type="text" name="layer" class="form-control" placeholder="Contoh: Jalan_Kalurahan"></div>
+
+                        <div class="col-md-6 mb-2"><label class="small fw-bold">Foto Awal</label><input type="file" name="foto_awal" class="form-control" accept="image/*"></div>
+                        <div class="col-md-6 mb-2"><label class="small fw-bold">Foto Akhir</label><input type="file" name="foto_akhir" class="form-control" accept="image/*"></div>
+
                         <div class="col-md-12 mb-2">
-                            <label class="small fw-bold">GeoJSON Geometry <span class="text-danger">*</span></label>
+                            <label class="small fw-bold">GeoJSON Geometry *</label>
                             <textarea name="geom" class="form-control font-monospace" rows="4" required placeholder='{"type":"LineString","coordinates":[[...]]}'></textarea>
                         </div>
                     </div>
@@ -1134,6 +1266,57 @@
                 <div class="modal-footer bg-light border-top-0">
                     <button type="submit" class="btn btn-secondary btn-sm text-white"><i class="mdi mdi-content-save"></i> Update Data</button>
                 </div>
+            </div>
+        </form>
+    </div>
+</div>
+@endforeach
+
+@foreach($jalans as $jalan)
+<div class="modal fade" id="modalEditJalan{{ $jalan->id }}" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg text-start">
+        <form action="{{ route('jalan-kw.update', $jalan->id) }}" method="POST" enctype="multipart/form-data">
+            @csrf @method('PUT')
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Edit Jaringan Jalan</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row g-2">
+                        <div class="col-md-12 mb-2"><label class="small fw-bold">Nama Jalan *</label><input type="text" name="nama" class="form-control" value="{{ $jalan->nama }}" required></div>
+
+                        <div class="col-md-3 mb-2"><label class="small fw-bold">Panjang (m)</label><input type="number" step="any" name="panjang" class="form-control" value="{{ $jalan->panjang }}"></div>
+                        <div class="col-md-3 mb-2"><label class="small fw-bold">Lebar (m)</label><input type="number" step="any" name="lebar" class="form-control" value="{{ $jalan->lebar }}"></div>
+                        <div class="col-md-3 mb-2"><label class="small fw-bold">Luas</label><input type="number" step="any" name="luas" class="form-control" value="{{ $jalan->luas }}"></div>
+                        <div class="col-md-3 mb-2"><label class="small fw-bold">Aset Tanah (Rp)</label><input type="number" step="any" name="aset_tanah" class="form-control" value="{{ $jalan->aset_tanah }}"></div>
+
+                        <div class="col-md-4 mb-2"><label class="small fw-bold">Kondisi</label><input type="text" name="kondisi" class="form-control" value="{{ $jalan->kondisi }}"></div>
+                        <div class="col-md-4 mb-2"><label class="small fw-bold">Kewenangan</label><input type="text" name="kewenangan" class="form-control" value="{{ $jalan->kewenangan }}"></div>
+                        <div class="col-md-4 mb-2"><label class="small fw-bold">Status</label><input type="text" name="status" class="form-control" value="{{ $jalan->status }}"></div>
+
+                        <div class="col-md-4 mb-2"><label class="small fw-bold">Rata2 NJOP (Rp)</label><input type="number" step="any" name="rer_njop" class="form-control" value="{{ $jalan->rer_njop }}"></div>
+                        <div class="col-md-4 mb-2"><label class="small fw-bold">Asal</label><input type="text" name="asal" class="form-control" value="{{ $jalan->asal }}"></div>
+                        <div class="col-md-4 mb-2"><label class="small fw-bold">Layer Group</label><input type="text" name="layer" class="form-control" value="{{ $jalan->layer }}"></div>
+
+                        <div class="col-md-6 mb-2">
+                            <label class="small fw-bold">Ganti Foto Awal</label>
+                            <input type="file" name="foto_awal" class="form-control" accept="image/*">
+                            @if($jalan->foto_awal) <small class="text-success d-block mt-1"><i class="mdi mdi-check"></i> File ada: {{ basename($jalan->foto_awal) }}</small> @endif
+                        </div>
+                        <div class="col-md-6 mb-2">
+                            <label class="small fw-bold">Ganti Foto Akhir</label>
+                            <input type="file" name="foto_akhir" class="form-control" accept="image/*">
+                            @if($jalan->foto_akhir) <small class="text-success d-block mt-1"><i class="mdi mdi-check"></i> File ada: {{ basename($jalan->foto_akhir) }}</small> @endif
+                        </div>
+
+                        <div class="col-md-12 mb-2">
+                            <label class="small fw-bold">GeoJSON Geometry *</label>
+                            <textarea name="geom" class="form-control font-monospace" rows="4" required>{{ $jalan->geom_json }}</textarea>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer"><button type="submit" class="btn btn-primary btn-sm text-white">Update Data</button></div>
             </div>
         </form>
     </div>
