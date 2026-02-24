@@ -673,6 +673,258 @@
         }
     }
 
+    // ============================================================
+    // 7. KONTROL QUERY SPASIAL & ATRIBUT (SIMULASI MYSQL 8) INTERAKTIF
+    // ============================================================
+
+    // 1. Buat elemen UI Panel Query di pojok kiri atas
+    var queryControl = L.control({position: 'topleft'});
+
+    queryControl.onAdd = function (map) {
+        var div = L.DomUtil.create('div', 'query-panel p-3 shadow-lg');
+        div.style.backgroundColor = 'rgba(255, 255, 255, 0.95)';
+        div.style.borderRadius = '8px';
+        div.style.width = '290px';
+        div.style.borderTop = '4px solid #0d6efd';
+
+        div.innerHTML = `
+            <h6 class="fw-bold text-primary mb-3 border-bottom pb-2" style="font-family:sans-serif;">
+                <i class="fa-solid fa-database me-1"></i> Live Spatial Query
+            </h6>
+
+            <div class="mb-3">
+                <small class="fw-bold text-secondary d-block mb-1" style="font-size:11px;">1. WILAYAH (PENDUDUK > X)</small>
+                <div class="input-group input-group-sm">
+                    <span class="input-group-text bg-primary text-white"><i class="fa-solid fa-users"></i></span>
+                    <input type="number" id="input-q-admin" class="form-control" placeholder="Cth: 500" value="500">
+                    <button id="btn-q-admin" class="btn btn-primary fw-bold">Cari</button>
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <small class="fw-bold text-secondary d-block mb-1" style="font-size:11px;">2. JALAN (KONDISI/KATA KUNCI)</small>
+                <div class="input-group input-group-sm">
+                    <span class="input-group-text bg-danger text-white"><i class="fa-solid fa-road-spikes"></i></span>
+                    <input type="text" id="input-q-jalan" class="form-control" placeholder="Cth: Rusak / Baik" value="Rusak">
+                    <button id="btn-q-jalan" class="btn btn-danger fw-bold">Cari</button>
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <small class="fw-bold text-secondary d-block mb-1" style="font-size:11px;">3. MASJID RADIUS SPASIAL</small>
+
+                <button id="btn-set-pusat" class="btn btn-outline-dark btn-sm w-100 mb-2" style="font-size:12px;">
+                    <i class="fa-solid fa-location-crosshairs"></i> 1. Klik Peta untuk Set Titik
+                </button>
+
+                <div class="input-group input-group-sm">
+                    <span class="input-group-text bg-success text-white">Meter</span>
+                    <input type="number" id="input-q-masjid" class="form-control" placeholder="Cth: 1000" value="1000">
+                    <button id="btn-q-masjid" class="btn btn-success fw-bold">2. Cari</button>
+                </div>
+            </div>
+
+            <button id="btn-q-reset" class="btn btn-secondary btn-sm w-100 mt-2 fw-bold" style="font-size:12px;">
+                <i class="fa-solid fa-rotate-right me-1"></i> Reset Peta
+            </button>
+        `;
+
+        // Cegah peta zoom/geser saat user ngeklik atau ngetik di dalam panel
+        L.DomEvent.disableClickPropagation(div);
+        L.DomEvent.disableScrollPropagation(div);
+
+        div.addEventListener('mouseover', function () { map.dragging.disable(); map.keyboard.disable(); });
+        div.addEventListener('mouseout', function () { map.dragging.enable(); map.keyboard.enable(); });
+
+        return div;
+    };
+    queryControl.addTo(map);
+
+    // 2. Variabel Penampung Logika Spasial
+    var queryLayerAdmin, queryLayerJalan, queryLayerMasjid;
+    var radiusCircle;
+    var titikPusatMarker; // Marker yang bisa digeser
+    var titikPusatLatLng = L.latLng(-7.91000, 110.09500); // Koordinat Awal
+    var isPickingPoint = false; // Mode nge-klik peta
+
+    // ----------------------------------------------------
+    // FUNGSI KHUSUS: AKTIFKAN MODE KLIK TITIK PUSAT
+    // ----------------------------------------------------
+    document.getElementById('btn-set-pusat').onclick = function() {
+        isPickingPoint = true;
+        document.getElementById('map').style.cursor = 'crosshair'; // Ubah kursor
+
+        // Ubah tampilan tombol biar user ngeh
+        this.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Silakan klik di peta...';
+        this.classList.replace('btn-outline-dark', 'btn-warning');
+    };
+
+    // Deteksi klik pada peta untuk menancapkan titik pusat
+    map.on('click', function(e) {
+        if (isPickingPoint) {
+            titikPusatLatLng = e.latlng; // Simpan koordinat yang diklik
+
+            // Hapus lingkaran lama kalau ada
+            if(radiusCircle) map.removeLayer(radiusCircle);
+            if(queryLayerMasjid) map.removeLayer(queryLayerMasjid);
+
+            // Buat atau pindahkan marker titik pusat
+            if (!titikPusatMarker) {
+                titikPusatMarker = L.marker(titikPusatLatLng, {
+                    draggable: true, // SAKTI: Bisa digeser manual oleh user!
+                    icon: L.divIcon({
+                        className: 'pin-leaflet',
+                        html: '<i class="fa-solid fa-location-crosshairs text-danger" style="font-size:28px; text-shadow: 2px 2px 4px rgba(0,0,0,0.5);"></i>',
+                        iconSize: [28,28], iconAnchor: [14,14]
+                    })
+                }).addTo(map);
+
+                // Update koordinat saat marker digeser (drag)
+                titikPusatMarker.on('dragend', function(ev) {
+                    titikPusatLatLng = ev.target.getLatLng();
+                });
+            } else {
+                titikPusatMarker.setLatLng(titikPusatLatLng);
+            }
+
+            titikPusatMarker.bindPopup("<div class='text-center'><b>Titik Referensi</b><br><small><i>(Bisa digeser-geser)</i></small></div>").openPopup();
+
+            // Kembalikan kursor & UI tombol ke normal
+            isPickingPoint = false;
+            document.getElementById('map').style.cursor = '';
+            var btnSet = document.getElementById('btn-set-pusat');
+            btnSet.innerHTML = '<i class="fa-solid fa-check"></i> Titik Pusat Ditetapkan';
+            btnSet.classList.replace('btn-warning', 'btn-outline-dark');
+        }
+    });
+
+    // ----------------------------------------------------
+    // FUNGSI RESET PETA
+    // ----------------------------------------------------
+    document.getElementById('btn-q-reset').onclick = function() {
+        if(queryLayerAdmin) map.removeLayer(queryLayerAdmin);
+        if(queryLayerJalan) map.removeLayer(queryLayerJalan);
+        if(queryLayerMasjid) map.removeLayer(queryLayerMasjid);
+        if(radiusCircle) map.removeLayer(radiusCircle);
+        if(titikPusatMarker) map.removeLayer(titikPusatMarker);
+
+        titikPusatMarker = null; // Reset titik
+        var btnSet = document.getElementById('btn-set-pusat');
+        btnSet.innerHTML = '<i class="fa-solid fa-location-crosshairs"></i> 1. Klik Peta utk Titik Pusat';
+        btnSet.classList.replace('btn-warning', 'btn-outline-dark');
+
+        if(typeof layerAdmin !== 'undefined' && layerAdmin) map.addLayer(layerAdmin);
+        if(typeof layerJalan !== 'undefined' && layerJalan) map.addLayer(layerJalan);
+        if(typeof markers !== 'undefined' && markers) map.addLayer(markers);
+
+        map.setView([-7.916181, 110.095629], 15);
+    };
+
+    // ----------------------------------------------------
+    // LOGIKA QUERY 1: POLIGON (CUSTOM PENDUDUK)
+    // ----------------------------------------------------
+    document.getElementById('btn-q-admin').onclick = function() {
+        if(queryLayerAdmin) map.removeLayer(queryLayerAdmin);
+        if(typeof layerAdmin !== 'undefined' && layerAdmin) map.removeLayer(layerAdmin);
+
+        var valPenduduk = parseInt(document.getElementById('input-q-admin').value) || 0;
+
+        if (dataAdmin) {
+            queryLayerAdmin = L.geoJSON(dataAdmin, {
+                filter: function(feature) {
+                    return feature.properties.jumlah_penduduk > valPenduduk;
+                },
+                style: { fillColor: '#e67e22', color: '#d35400', weight: 2, fillOpacity: 0.7 },
+                onEachFeature: function(feature, layer) {
+                    layer.bindPopup(`<b>${feature.properties.padukuhan}</b><br><span style="color:red;">Penduduk: ${feature.properties.jumlah_penduduk} Jiwa</span>`);
+                }
+            }).addTo(map);
+
+            if(queryLayerAdmin.getLayers().length > 0) map.fitBounds(queryLayerAdmin.getBounds());
+            else alert("Tidak ada data padukuhan dengan penduduk > " + valPenduduk + " jiwa.");
+        }
+    };
+
+    // ----------------------------------------------------
+    // LOGIKA QUERY 2: JALAN (CUSTOM KONDISI)
+    // ----------------------------------------------------
+    document.getElementById('btn-q-jalan').onclick = function() {
+        if(queryLayerJalan) map.removeLayer(queryLayerJalan);
+        if(typeof layerJalan !== 'undefined' && layerJalan) map.removeLayer(layerJalan);
+
+        var valKondisi = document.getElementById('input-q-jalan').value.toUpperCase().trim();
+
+        if (dataJalan) {
+            queryLayerJalan = L.geoJSON(dataJalan, {
+                filter: function(feature) {
+                    if(!valKondisi) return true;
+                    var dataKondisi = (feature.properties.kondisi || '').toUpperCase();
+                    return dataKondisi.includes(valKondisi);
+                },
+                style: { color: 'red', weight: 6, dashArray: '10, 10' },
+                onEachFeature: function(feature, layer) {
+                    layer.bindPopup(`<b>${feature.properties.nama || '-'}</b><br>Kondisi: <b>${feature.properties.kondisi}</b>`);
+                }
+            }).addTo(map);
+
+            if(queryLayerJalan.getLayers().length > 0) map.fitBounds(queryLayerJalan.getBounds());
+            else alert("Tidak ada jalan dengan kondisi: " + valKondisi);
+        }
+    };
+
+    // ----------------------------------------------------
+    // LOGIKA QUERY 3: TITIK MASJID (DENGAN CUSTOM TITIK PUSAT)
+    // ----------------------------------------------------
+    document.getElementById('btn-q-masjid').onclick = function() {
+        // Peringatan jika user belum klik peta
+        if(!titikPusatMarker) {
+            alert("Halo! Silakan klik tombol '1. Klik Peta' dulu, lalu tentukan titik lokasinya di atas peta ya.");
+            return;
+        }
+
+        if(queryLayerMasjid) map.removeLayer(queryLayerMasjid);
+        if(typeof markers !== 'undefined' && markers) map.removeLayer(markers);
+        if(radiusCircle) map.removeLayer(radiusCircle);
+
+        var valRadius = parseFloat(document.getElementById('input-q-masjid').value) || 1000;
+
+        if (dataMasjid) {
+            // Gambar visualisasi radius di titik yang baru diklik/digeser
+            radiusCircle = L.circle(titikPusatLatLng, {
+                radius: valRadius,
+                color: '#27ae60', fillColor: '#2ecc71', fillOpacity: 0.15, weight: 2, dashArray: '5,5'
+            }).addTo(map);
+
+            // Filter data masjid
+            queryLayerMasjid = L.geoJSON(dataMasjid, {
+                filter: function(feature) {
+                    if (feature.geometry && feature.geometry.coordinates) {
+                        var msjdLatLng = L.latLng(feature.geometry.coordinates[1], feature.geometry.coordinates[0]);
+                        // Logika Spasial Leaflet (sama seperti ST_Distance_Sphere di MySQL)
+                        return titikPusatLatLng.distanceTo(msjdLatLng) <= valRadius;
+                    }
+                    return false;
+                },
+                pointToLayer: function(feature, latlng) {
+                    return L.marker(latlng, {
+                        icon: L.divIcon({
+                            className: 'pin-leaflet',
+                            html: '<i class="fa-solid fa-star" style="color:gold; font-size:18px; text-shadow: 1px 1px 2px black;"></i>',
+                            iconSize: [20, 20]
+                        })
+                    });
+                },
+                onEachFeature: function(feature, layer) {
+                    var msjdLatLng = L.latLng(feature.geometry.coordinates[1], feature.geometry.coordinates[0]);
+                    var jarak = Math.round(titikPusatLatLng.distanceTo(msjdLatLng));
+                    layer.bindPopup(`<b>${feature.properties.nama}</b><br>Jarak: <b style="color:green;">${jarak} Meter</b> dari titik referensi.`);
+                }
+            }).addTo(map);
+
+            map.fitBounds(radiusCircle.getBounds());
+        }
+    };
+
     });
 
 
