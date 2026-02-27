@@ -19,13 +19,6 @@
             </div>
         @endif
 
-        @if(session('error'))
-            <div class="alert alert-danger alert-dismissible fade show shadow-sm" role="alert">
-                <i class="mdi mdi-alert-circle me-2"></i>{{ session('error') }}
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-            </div>
-        @endif
-
         @if($errors->any())
             <div class="alert alert-warning alert-dismissible fade show shadow-sm" role="alert">
                 <strong><i class="mdi mdi-alert-outline me-2"></i>Oops! Ada inputan yang salah:</strong>
@@ -72,7 +65,11 @@
                             </li>
                         </ul>
 
+                        {{-- TAB NON GEOSERVER --}}
+
                         <div class="tab-content border-0 p-0 mt-4" id="pills-tabContent">
+
+                        {{-- TAB NON GEOSERVER ADMINISTRASI --}}
 
                             <div class="tab-pane fade" id="pills-admin" role="tabpanel">
                                 <div class="d-flex justify-content-between align-items-center flex-wrap mb-3 gap-2">
@@ -130,6 +127,8 @@
                                 </div>
                                 <div class="mt-2">{{ $admins->appends(request()->except('admin_page'))->links('pagination::bootstrap-5') }}</div>
                             </div>
+
+                            {{-- TAB NON GEOSERVER JALAN --}}
 
                             <div class="tab-pane fade" id="pills-jalan" role="tabpanel">
                                 <div class="d-flex justify-content-between align-items-center flex-wrap mb-3 gap-2">
@@ -225,6 +224,8 @@
                                 <div class="mt-2">{{ $jalans->appends(request()->except('jalan_page'))->links('pagination::bootstrap-5') }}</div>
                             </div>
 
+                            {{-- TAB NON GEOSERVER MASJID --}}
+
                             <div class="tab-pane fade show active" id="pills-masjid" role="tabpanel">
 
                                 <div class="d-flex justify-content-between align-items-center flex-wrap mb-3 gap-2">
@@ -286,73 +287,6 @@
                                                     </form>
                                                 </td>
                                             </tr>
-
-                                            <div class="modal fade" id="modalEditMasjid{{ $masjid->id }}" tabindex="-1" aria-hidden="true">
-                                                <div class="modal-dialog modal-lg text-start">
-                                                    <form action="{{ route('masjid-kw.update', $masjid->id) }}" method="POST" enctype="multipart/form-data">
-                                                        @csrf
-                                                        @method('PUT')
-                                                        <div class="modal-content">
-                                                            <div class="modal-header">
-                                                                <h5 class="modal-title">Edit Data Masjid</h5>
-                                                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                                                            </div>
-                                                            <div class="modal-body">
-                                                                <div class="row">
-                                                                    <div class="col-md-6 mb-3">
-                                                                        <label class="fw-bold small">Nama Masjid</label>
-                                                                        <input type="text" name="nama" class="form-control" value="{{ $masjid->nama }}" required>
-                                                                    </div>
-                                                                    <div class="col-md-3 mb-3">
-                                                                        <label class="fw-bold small">Luas (m2)</label>
-                                                                        <input type="number" step="0.01" name="luas_m2" class="form-control" value="{{ $masjid->luas_m2 }}">
-                                                                    </div>
-                                                                    <div class="col-md-3 mb-3">
-                                                                        <label class="fw-bold small">Jumlah Jamaah</label>
-                                                                        <input type="number" name="jumlah_jamaah" class="form-control" value="{{ $masjid->jumlah_jamaah }}">
-                                                                    </div>
-                                                                    <div class="col-md-6 mb-3">
-                                                                        <label class="fw-bold small">Nama Takmir</label>
-                                                                        <input type="text" name="takmir_cp" class="form-control" value="{{ $masjid->takmir_cp }}">
-                                                                    </div>
-                                                                    <div class="col-md-6 mb-3">
-                                                                        <label class="fw-bold small">No. Telepon / WA</label>
-                                                                        <input type="text" name="no_telepon" class="form-control" value="{{ $masjid->no_telepon }}">
-                                                                    </div>
-                                                                    <div class="col-md-8 mb-3">
-                                                                        <label class="fw-bold small">Ganti Foto <span class="text-muted fw-normal">(Opsional)</span></label>
-                                                                        <input type="file" name="foto" class="form-control" accept="image/*">
-                                                                        @if($masjid->foto)
-                                                                            <small class="text-success"><i class="mdi mdi-check"></i> Sudah ada foto tersimpan.</small>
-                                                                        @endif
-                                                                    </div>
-                                                                    <div class="col-md-4 mb-3">
-                                                                        <label class="fw-bold small">Icon URL</label>
-                                                                        <input type="text" name="icon_url" class="form-control" value="{{ $masjid->icon_url }}">
-                                                                    </div>
-                                                                </div>
-
-                                                                <hr>
-                                                                <p class="fw-bold mb-2">Data Geometri (Koordinat WGS84)</p>
-                                                                <div class="row">
-                                                                    <div class="col-md-6 mb-3">
-                                                                        <label class="small text-muted">Longitude (X)</label>
-                                                                        <input type="text" name="longitude" class="form-control" value="{{ $masjid->lng }}" required>
-                                                                    </div>
-                                                                    <div class="col-md-6 mb-3">
-                                                                        <label class="small text-muted">Latitude (Y)</label>
-                                                                        <input type="text" name="latitude" class="form-control" value="{{ $masjid->lat }}" required>
-                                                                    </div>
-                                                                </div>
-                                                            </div>
-                                                            <div class="modal-footer">
-                                                                <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Batal</button>
-                                                                <button type="submit" class="btn btn-primary btn-sm text-white">Update Data</button>
-                                                            </div>
-                                                        </div>
-                                                    </form>
-                                                </div>
-                                            </div>
                                             @empty
                                             <tr>
                                                 <td colspan="6" class="text-center text-muted py-4">Belum ada data masjid. Silakan tambah atau import.</td>
@@ -366,11 +300,11 @@
                                 </div>
                             </div>
                         </div>
-
                     </div>
 
-                    <div class="tab-pane fade" id="geoserver" role="tabpanel">
+                    {{-- TAB GEOSERVER --}}
 
+                    <div class="tab-pane fade" id="geoserver" role="tabpanel">
                         <div class="d-flex justify-content-between align-items-center flex-wrap mb-3 gap-2 mt-3">
                             <div>
                                 <h5 class="card-title mb-1">Manajemen Layer GeoServer</h5>
@@ -429,119 +363,6 @@
                                             </form>
                                         </td>
                                     </tr>
-
-                                    <div class="modal fade" id="modalEditGeo{{ $geo->id }}" tabindex="-1" aria-hidden="true">
-                                        <div class="modal-dialog modal-lg">
-                                            <form action="{{ route('geoserver.update', $geo->id) }}" method="POST">
-                                                @csrf @method('PUT')
-                                                <div class="modal-content">
-                                                    <div class="modal-header bg-info text-white">
-                                                        <h5 class="modal-title"><i class="mdi mdi-pencil-box me-2"></i>Edit Layer GeoServer</h5>
-                                                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-                                                    </div>
-                                                    <div class="modal-body bg-light">
-                                                        <div class="card shadow-sm mb-3">
-                                                            <div class="card-body p-3">
-                                                                <h6 class="card-subtitle mb-3 text-muted fw-bold">1. Identitas Layer</h6>
-                                                                <div class="row g-3">
-                                                                    <div class="col-md-6">
-                                                                        <label class="form-label small fw-bold">Workspace <span class="text-danger">*</span></label>
-                                                                        <input type="text" name="workspace" class="form-control font-monospace" value="{{ $geo->workspace }}" required>
-                                                                    </div>
-                                                                    <div class="col-md-6">
-                                                                        <label class="form-label small fw-bold">Nama Layer (Store Name) <span class="text-danger">*</span></label>
-                                                                        <input type="text" name="layer_name" class="form-control font-monospace" value="{{ $geo->layer_name }}" required>
-                                                                    </div>
-                                                                    <div class="col-12">
-                                                                        <label class="form-label small fw-bold">Judul Tampilan (Title Peta) <span class="text-danger">*</span></label>
-                                                                        <input type="text" name="title" class="form-control fw-bold" value="{{ $geo->title }}" required>
-                                                                    </div>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-
-                                                        <div class="card shadow-sm mb-3">
-                                                            <div class="card-body p-3">
-                                                                <h6 class="card-subtitle mb-3 text-muted fw-bold">2. Konfigurasi Server</h6>
-                                                                <div class="row g-3 mb-2">
-                                                                    <div class="col-12">
-                                                                        <label class="form-label small fw-bold">Base URL GeoServer <span class="text-danger">*</span></label>
-                                                                        <div class="input-group">
-                                                                            <span class="input-group-text bg-light"><i class="mdi mdi-server"></i></span>
-                                                                            <input type="url" name="base_url" class="form-control font-monospace" value="{{ $geo->base_url }}" required>
-                                                                        </div>
-                                                                        <div class="form-text small">Contoh: http://localhost:8080/geoserver/ (Akhiri dengan slash '/')</div>
-                                                                    </div>
-                                                                </div>
-                                                                <div class="row g-3">
-                                                                    <div class="col-md-6">
-                                                                        <label class="form-label small fw-bold">Tipe Data</label>
-                                                                        <select name="type" class="form-select">
-                                                                            <option value="vector" {{ $geo->type == 'vector' ? 'selected' : '' }}>Vector (Garis/Poligon/Titik)</option>
-                                                                            <option value="raster" {{ $geo->type == 'raster' ? 'selected' : '' }}>Raster (Citra/Foto Udara)</option>
-                                                                        </select>
-                                                                    </div>
-                                                                    <div class="col-md-6">
-                                                                        <label class="form-label small fw-bold">Z-Index (Tumpukan)</label>
-                                                                        <input type="number" name="z_index" class="form-control" value="{{ $geo->z_index }}" min="0">
-                                                                        <div class="form-text small">Semakin besar angkanya, semakin di atas posisinya.</div>
-                                                                    </div>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-
-                                                        <div class="card shadow-sm border-primary">
-                                                            <div class="card-body p-3">
-                                                                <h6 class="card-subtitle mb-3 text-primary fw-bold">3. Layanan & Status Peta</h6>
-                                                                <ul class="list-group list-group-flush">
-                                                                    <li class="list-group-item d-flex justify-content-between align-items-center bg-light ps-0">
-                                                                        <div>
-                                                                            <span class="fw-bold d-block"><i class="mdi mdi-eye me-1 text-info"></i> Enable WMS</span>
-                                                                            <small class="text-muted">Aktifkan visualisasi gambar (wajib untuk tampil).</small>
-                                                                        </div>
-                                                                        <div class="form-check form-switch mb-0">
-                                                                            <input class="form-check-input" type="checkbox" name="enable_wms" value="1" {{ $geo->enable_wms ? 'checked' : '' }} style="transform: scale(1.3);">
-                                                                        </div>
-                                                                    </li>
-                                                                    <li class="list-group-item d-flex justify-content-between align-items-center bg-light ps-0">
-                                                                        <div>
-                                                                            <span class="fw-bold d-block"><i class="mdi mdi-cursor-default-click me-1 text-warning"></i> Enable WFS</span>
-                                                                            <small class="text-muted">Aktifkan fitur klik info dan pencarian (hanya vektor).</small>
-                                                                        </div>
-                                                                        <div class="form-check form-switch mb-0">
-                                                                            <input class="form-check-input" type="checkbox" name="enable_wfs" value="1" {{ $geo->enable_wfs ? 'checked' : '' }} style="transform: scale(1.3);">
-                                                                        </div>
-                                                                    </li>
-                                                                    <li class="list-group-item d-flex justify-content-between align-items-center bg-light ps-0">
-                                                                        <div>
-                                                                            <span class="fw-bold d-block"><i class="mdi mdi-image-filter-hdr me-1 text-success"></i> Enable WMTS</span>
-                                                                            <small class="text-muted">Gunakan GeoWebCache untuk loading raster cepat.</small>
-                                                                        </div>
-                                                                        <div class="form-check form-switch mb-0">
-                                                                            <input class="form-check-input" type="checkbox" name="enable_wmts" value="1" {{ $geo->enable_wmts ? 'checked' : '' }} style="transform: scale(1.3);">
-                                                                        </div>
-                                                                    </li>
-                                                                    <li class="list-group-item d-flex justify-content-between align-items-center bg-success bg-opacity-10 ps-2 rounded mt-2">
-                                                                        <div>
-                                                                            <span class="fw-bold d-block text-success"><i class="mdi mdi-power me-1"></i> STATUS DEFAULT PETA</span>
-                                                                            <small class="text-dark">Apakah layer langsung tampil saat peta dibuka?</small>
-                                                                        </div>
-                                                                        <div class="form-check form-switch mb-0">
-                                                                            <input class="form-check-input" type="checkbox" name="is_active" value="1" {{ $geo->is_active ? 'checked' : '' }} style="transform: scale(1.4);">
-                                                                        </div>
-                                                                    </li>
-                                                                </ul>
-                                                            </div>
-                                                        </div>
-
-                                                    </div> <div class="modal-footer bg-light">
-                                                        <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Batal</button>
-                                                        <button type="submit" class="btn btn-info btn-sm text-white">Simpan Perubahan</button>
-                                                    </div>
-                                                </div>
-                                            </form>
-                                        </div>
-                                    </div>
                                     @empty
                                     <tr><td colspan="6" class="text-center py-4 text-muted">Belum ada konfigurasi layer GeoServer. Klik "Tambah Layer" untuk memulai.</td></tr>
                                     @endforelse
@@ -550,6 +371,8 @@
                         </div>
                         <div class="mt-2">{{ $geoservers->appends(request()->except('geoserver_page'))->links('pagination::bootstrap-5') }}</div>
                     </div>
+
+                    {{-- TAB CESIUM SELF HOSTED --}}
 
                     <div class="tab-pane fade" id="cesium-self" role="tabpanel">
                         <div class="d-flex justify-content-between align-items-center flex-wrap mb-3 gap-2 mt-3">
@@ -584,6 +407,8 @@
                         </div>
                         <div class="mt-2">{{ $selfHosteds->appends(request()->except('self_page'))->links('pagination::bootstrap-5') }}</div>
                     </div>
+
+                    {{-- TAB CESIUM ION --}}
 
                     <div class="tab-pane fade" id="cesium-ion" role="tabpanel">
                         <div class="d-flex justify-content-between align-items-center flex-wrap mb-3 gap-2 mt-3">
@@ -624,92 +449,7 @@
     </div>
 </div>
 
-<div class="modal fade" id="modalTambahMasjid" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-lg">
-        <form action="{{ route('masjid-kw.store') }}" method="POST" enctype="multipart/form-data">
-            @csrf
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Tambah Data Masjid Manual</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label class="fw-bold small">Nama Masjid <span class="text-danger">*</span></label>
-                            <input type="text" name="nama" class="form-control" required placeholder="Contoh: Masjid Agung">
-                        </div>
-                        <div class="col-md-3 mb-3">
-                            <label class="fw-bold small">Luas (m2)</label>
-                            <input type="number" step="0.01" name="luas_m2" class="form-control" value="0">
-                        </div>
-                        <div class="col-md-3 mb-3">
-                            <label class="fw-bold small">Jumlah Jamaah</label>
-                            <input type="number" name="jumlah_jamaah" class="form-control" value="0">
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label class="fw-bold small">Nama Takmir</label>
-                            <input type="text" name="takmir_cp" class="form-control" placeholder="Nama pengurus">
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label class="fw-bold small">No. Telepon / WA</label>
-                            <input type="text" name="no_telepon" class="form-control" placeholder="0812...">
-                        </div>
-                        <div class="col-md-8 mb-3">
-                            <label class="fw-bold small">Upload Foto Masjid</label>
-                            <input type="file" name="foto" class="form-control" accept="image/*">
-                        </div>
-                        <div class="col-md-4 mb-3">
-                            <label class="fw-bold small">Icon URL</label>
-                            <input type="text" name="icon_url" class="form-control" value="./0.png">
-                        </div>
-                    </div>
-
-                    <hr>
-                    <p class="fw-bold mb-2">Data Geometri (Koordinat WGS84) <span class="text-danger">*</span></p>
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label class="small text-muted">Longitude (X)</label>
-                            <input type="text" name="longitude" class="form-control border-primary" required placeholder="110.xxx">
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label class="small text-muted">Latitude (Y)</label>
-                            <input type="text" name="latitude" class="form-control border-primary" required placeholder="-7.xxx">
-                        </div>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Batal</button>
-                    <button type="submit" class="btn btn-primary btn-sm text-white">Simpan Data</button>
-                </div>
-            </div>
-        </form>
-    </div>
-</div>
-
-<div class="modal fade" id="modalImportMasjid" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog">
-        <form action="{{ route('masjid-kw.import') }}" method="POST" enctype="multipart/form-data">
-            @csrf
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Import GeoJSON Masjid</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <div class="mb-3">
-                        <label class="fw-bold mb-2">Pilih File (.geojson / .json)</label>
-                        <input type="file" name="file_geojson" class="form-control" accept=".geojson, .json" required>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary btn-sm text-white" data-bs-dismiss="modal">Batal</button>
-                    <button type="submit" class="btn btn-success btn-sm text-white"><i class="mdi mdi-upload"></i> Proses Import</button>
-                </div>
-            </div>
-        </form>
-    </div>
-</div>
+{{-- MODAL NON GEOSERVER ADMIN --}}
 
 <div class="modal fade" id="modalTambahAdmin" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-lg text-start">
@@ -861,6 +601,35 @@
 </div>
 @endforeach
 
+<div class="modal fade" id="modalImportAdmin" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <form action="{{ route('admin-kw.import') }}" method="POST" enctype="multipart/form-data">
+            @csrf
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Import GeoJSON Batas Wilayah</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="fw-bold small mb-2">Pilih File (.geojson / .json)</label>
+                        <input type="file" name="file_geojson" class="form-control border-success" accept=".geojson, .json" required>
+                        <small class="text-muted mt-2 d-block">
+                            *Pastikan atribut properties-nya sesuai dengan kolom: Kalurahan, Padukuhan, LUAS, JUMLAH_KK, dll.
+                        </small>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Batal</button>
+                    <button type="submit" class="btn btn-success btn-sm text-white"><i class="mdi mdi-upload"></i> Proses Import</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+{{-- MODAL NON GEOSERVER JALAN --}}
+
 <div class="modal fade" id="modalTambahJalan" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-lg text-start">
         <form action="{{ route('jalan-kw.store') }}" method="POST" enctype="multipart/form-data">
@@ -902,32 +671,56 @@
     </div>
 </div>
 
-<div class="modal fade" id="modalImportAdmin" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog">
-        <form action="{{ route('admin-kw.import') }}" method="POST" enctype="multipart/form-data">
-            @csrf
+@foreach($jalans as $jalan)
+<div class="modal fade" id="modalEditJalan{{ $jalan->id }}" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg text-start">
+        <form action="{{ route('jalan-kw.update', $jalan->id) }}" method="POST" enctype="multipart/form-data">
+            @csrf @method('PUT')
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title">Import GeoJSON Batas Wilayah</h5>
+                    <h5 class="modal-title">Edit Jaringan Jalan</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
-                    <div class="mb-3">
-                        <label class="fw-bold small mb-2">Pilih File (.geojson / .json)</label>
-                        <input type="file" name="file_geojson" class="form-control border-success" accept=".geojson, .json" required>
-                        <small class="text-muted mt-2 d-block">
-                            *Pastikan atribut properties-nya sesuai dengan kolom: Kalurahan, Padukuhan, LUAS, JUMLAH_KK, dll.
-                        </small>
+                    <div class="row g-2">
+                        <div class="col-md-12 mb-2"><label class="small fw-bold">Nama Jalan *</label><input type="text" name="nama" class="form-control" value="{{ $jalan->nama }}" required></div>
+
+                        <div class="col-md-3 mb-2"><label class="small fw-bold">Panjang (m)</label><input type="number" step="any" name="panjang" class="form-control" value="{{ $jalan->panjang }}"></div>
+                        <div class="col-md-3 mb-2"><label class="small fw-bold">Lebar (m)</label><input type="number" step="any" name="lebar" class="form-control" value="{{ $jalan->lebar }}"></div>
+                        <div class="col-md-3 mb-2"><label class="small fw-bold">Luas</label><input type="number" step="any" name="luas" class="form-control" value="{{ $jalan->luas }}"></div>
+                        <div class="col-md-3 mb-2"><label class="small fw-bold">Aset Tanah (Rp)</label><input type="number" step="any" name="aset_tanah" class="form-control" value="{{ $jalan->aset_tanah }}"></div>
+
+                        <div class="col-md-4 mb-2"><label class="small fw-bold">Kondisi</label><input type="text" name="kondisi" class="form-control" value="{{ $jalan->kondisi }}"></div>
+                        <div class="col-md-4 mb-2"><label class="small fw-bold">Kewenangan</label><input type="text" name="kewenangan" class="form-control" value="{{ $jalan->kewenangan }}"></div>
+                        <div class="col-md-4 mb-2"><label class="small fw-bold">Status</label><input type="text" name="status" class="form-control" value="{{ $jalan->status }}"></div>
+
+                        <div class="col-md-4 mb-2"><label class="small fw-bold">Rata2 NJOP (Rp)</label><input type="number" step="any" name="rer_njop" class="form-control" value="{{ $jalan->rer_njop }}"></div>
+                        <div class="col-md-4 mb-2"><label class="small fw-bold">Asal</label><input type="text" name="asal" class="form-control" value="{{ $jalan->asal }}"></div>
+                        <div class="col-md-4 mb-2"><label class="small fw-bold">Layer Group</label><input type="text" name="layer" class="form-control" value="{{ $jalan->layer }}"></div>
+
+                        <div class="col-md-6 mb-2">
+                            <label class="small fw-bold">Ganti Foto Awal</label>
+                            <input type="file" name="foto_awal" class="form-control" accept="image/*">
+                            @if($jalan->foto_awal) <small class="text-success d-block mt-1"><i class="mdi mdi-check"></i> File ada: {{ basename($jalan->foto_awal) }}</small> @endif
+                        </div>
+                        <div class="col-md-6 mb-2">
+                            <label class="small fw-bold">Ganti Foto Akhir</label>
+                            <input type="file" name="foto_akhir" class="form-control" accept="image/*">
+                            @if($jalan->foto_akhir) <small class="text-success d-block mt-1"><i class="mdi mdi-check"></i> File ada: {{ basename($jalan->foto_akhir) }}</small> @endif
+                        </div>
+
+                        <div class="col-md-12 mb-2">
+                            <label class="small fw-bold">GeoJSON Geometry *</label>
+                            <textarea name="geom" class="form-control font-monospace" rows="4" required>{{ $jalan->geom_json }}</textarea>
+                        </div>
                     </div>
                 </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Batal</button>
-                    <button type="submit" class="btn btn-success btn-sm text-white"><i class="mdi mdi-upload"></i> Proses Import</button>
-                </div>
+                <div class="modal-footer"><button type="submit" class="btn btn-primary btn-sm text-white">Update Data</button></div>
             </div>
         </form>
     </div>
 </div>
+@endforeach
 
 <div class="modal fade" id="modalImportJalan" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog">
@@ -955,6 +748,165 @@
         </form>
     </div>
 </div>
+
+{{-- MODAL NON GEOSERVER MASJID --}}
+
+<div class="modal fade" id="modalTambahMasjid" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <form action="{{ route('masjid-kw.store') }}" method="POST" enctype="multipart/form-data">
+            @csrf
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Tambah Data Masjid Manual</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="fw-bold small">Nama Masjid <span class="text-danger">*</span></label>
+                            <input type="text" name="nama" class="form-control" required placeholder="Contoh: Masjid Agung">
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <label class="fw-bold small">Luas (m2)</label>
+                            <input type="number" step="0.01" name="luas_m2" class="form-control" value="0">
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <label class="fw-bold small">Jumlah Jamaah</label>
+                            <input type="number" name="jumlah_jamaah" class="form-control" value="0">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="fw-bold small">Nama Takmir</label>
+                            <input type="text" name="takmir_cp" class="form-control" placeholder="Nama pengurus">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="fw-bold small">No. Telepon / WA</label>
+                            <input type="text" name="no_telepon" class="form-control" placeholder="0812...">
+                        </div>
+                        <div class="col-md-8 mb-3">
+                            <label class="fw-bold small">Upload Foto Masjid</label>
+                            <input type="file" name="foto" class="form-control" accept="image/*">
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="fw-bold small">Icon URL</label>
+                            <input type="text" name="icon_url" class="form-control" value="./0.png">
+                        </div>
+                    </div>
+
+                    <hr>
+                    <p class="fw-bold mb-2">Data Geometri (Koordinat WGS84) <span class="text-danger">*</span></p>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="small text-muted">Longitude (X)</label>
+                            <input type="text" name="longitude" class="form-control border-primary" required placeholder="110.xxx">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="small text-muted">Latitude (Y)</label>
+                            <input type="text" name="latitude" class="form-control border-primary" required placeholder="-7.xxx">
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Batal</button>
+                    <button type="submit" class="btn btn-primary btn-sm text-white">Simpan Data</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+@foreach($masjids as $masjid)
+<div class="modal fade" id="modalEditMasjid{{ $masjid->id }}" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg text-start">
+        <form action="{{ route('masjid-kw.update', $masjid->id) }}" method="POST" enctype="multipart/form-data">
+            @csrf
+            @method('PUT')
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Edit Data Masjid</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="fw-bold small">Nama Masjid</label>
+                            <input type="text" name="nama" class="form-control" value="{{ $masjid->nama }}" required>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <label class="fw-bold small">Luas (m2)</label>
+                            <input type="number" step="0.01" name="luas_m2" class="form-control" value="{{ $masjid->luas_m2 }}">
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <label class="fw-bold small">Jumlah Jamaah</label>
+                            <input type="number" name="jumlah_jamaah" class="form-control" value="{{ $masjid->jumlah_jamaah }}">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="fw-bold small">Nama Takmir</label>
+                            <input type="text" name="takmir_cp" class="form-control" value="{{ $masjid->takmir_cp }}">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="fw-bold small">No. Telepon / WA</label>
+                            <input type="text" name="no_telepon" class="form-control" value="{{ $masjid->no_telepon }}">
+                        </div>
+                        <div class="col-md-8 mb-3">
+                            <label class="fw-bold small">Ganti Foto <span class="text-muted fw-normal">(Opsional)</span></label>
+                            <input type="file" name="foto" class="form-control" accept="image/*">
+                            @if($masjid->foto)
+                                <small class="text-success"><i class="mdi mdi-check"></i> Sudah ada foto tersimpan.</small>
+                            @endif
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="fw-bold small">Icon URL</label>
+                            <input type="text" name="icon_url" class="form-control" value="{{ $masjid->icon_url }}">
+                        </div>
+                    </div>
+                    <hr>
+                    <p class="fw-bold mb-2">Data Geometri (Koordinat WGS84)</p>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="small text-muted">Longitude (X)</label>
+                            <input type="text" name="longitude" class="form-control" value="{{ $masjid->lng }}" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="small text-muted">Latitude (Y)</label>
+                            <input type="text" name="latitude" class="form-control" value="{{ $masjid->lat }}" required>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Batal</button>
+                    <button type="submit" class="btn btn-primary btn-sm text-white">Update Data</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+@endforeach
+
+<div class="modal fade" id="modalImportMasjid" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <form action="{{ route('masjid-kw.import') }}" method="POST" enctype="multipart/form-data">
+            @csrf
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Import GeoJSON Masjid</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="fw-bold mb-2">Pilih File (.geojson / .json)</label>
+                        <input type="file" name="file_geojson" class="form-control" accept=".geojson, .json" required>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary btn-sm text-white" data-bs-dismiss="modal">Batal</button>
+                    <button type="submit" class="btn btn-success btn-sm text-white"><i class="mdi mdi-upload"></i> Proses Import</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+{{-- MODAL GEOSERVER --}}
 
 <div class="modal fade" id="modalTambahGeo" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-lg">
@@ -1069,6 +1021,124 @@
         </form>
     </div>
 </div>
+
+@foreach($geoservers as $geo)
+<div class="modal fade" id="modalEditGeo{{ $geo->id }}" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <form action="{{ route('geoserver.update', $geo->id) }}" method="POST">
+            @csrf @method('PUT')
+            <div class="modal-content">
+                <div class="modal-header bg-info text-white">
+                    <h5 class="modal-title"><i class="mdi mdi-pencil-box me-2"></i>Edit Layer GeoServer</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body bg-light">
+                    <div class="card shadow-sm mb-3">
+                        <div class="card-body p-3">
+                            <h6 class="card-subtitle mb-3 text-muted fw-bold">1. Identitas Layer</h6>
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label class="form-label small fw-bold">Workspace <span class="text-danger">*</span></label>
+                                    <input type="text" name="workspace" class="form-control font-monospace" value="{{ $geo->workspace }}" required>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label small fw-bold">Nama Layer (Store Name) <span class="text-danger">*</span></label>
+                                    <input type="text" name="layer_name" class="form-control font-monospace" value="{{ $geo->layer_name }}" required>
+                                </div>
+                                <div class="col-12">
+                                    <label class="form-label small fw-bold">Judul Tampilan (Title Peta) <span class="text-danger">*</span></label>
+                                    <input type="text" name="title" class="form-control fw-bold" value="{{ $geo->title }}" required>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card shadow-sm mb-3">
+                        <div class="card-body p-3">
+                            <h6 class="card-subtitle mb-3 text-muted fw-bold">2. Konfigurasi Server</h6>
+                            <div class="row g-3 mb-2">
+                                <div class="col-12">
+                                    <label class="form-label small fw-bold">Base URL GeoServer <span class="text-danger">*</span></label>
+                                    <div class="input-group">
+                                        <span class="input-group-text bg-light"><i class="mdi mdi-server"></i></span>
+                                        <input type="url" name="base_url" class="form-control font-monospace" value="{{ $geo->base_url }}" required>
+                                    </div>
+                                    <div class="form-text small">Contoh: http://localhost:8080/geoserver/ (Akhiri dengan slash '/')</div>
+                                </div>
+                            </div>
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label class="form-label small fw-bold">Tipe Data</label>
+                                    <select name="type" class="form-select">
+                                        <option value="vector" {{ $geo->type == 'vector' ? 'selected' : '' }}>Vector (Garis/Poligon/Titik)</option>
+                                        <option value="raster" {{ $geo->type == 'raster' ? 'selected' : '' }}>Raster (Citra/Foto Udara)</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label small fw-bold">Z-Index (Tumpukan)</label>
+                                    <input type="number" name="z_index" class="form-control" value="{{ $geo->z_index }}" min="0">
+                                    <div class="form-text small">Semakin besar angkanya, semakin di atas posisinya.</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card shadow-sm border-primary">
+                        <div class="card-body p-3">
+                            <h6 class="card-subtitle mb-3 text-primary fw-bold">3. Layanan & Status Peta</h6>
+                            <ul class="list-group list-group-flush">
+                                <li class="list-group-item d-flex justify-content-between align-items-center bg-light ps-0">
+                                    <div>
+                                        <span class="fw-bold d-block"><i class="mdi mdi-eye me-1 text-info"></i> Enable WMS</span>
+                                        <small class="text-muted">Aktifkan visualisasi gambar (wajib untuk tampil).</small>
+                                    </div>
+                                    <div class="form-check form-switch mb-0">
+                                        <input class="form-check-input" type="checkbox" name="enable_wms" value="1" {{ $geo->enable_wms ? 'checked' : '' }} style="transform: scale(1.3);">
+                                    </div>
+                                </li>
+                                <li class="list-group-item d-flex justify-content-between align-items-center bg-light ps-0">
+                                    <div>
+                                        <span class="fw-bold d-block"><i class="mdi mdi-cursor-default-click me-1 text-warning"></i> Enable WFS</span>
+                                        <small class="text-muted">Aktifkan fitur klik info dan pencarian (hanya vektor).</small>
+                                    </div>
+                                    <div class="form-check form-switch mb-0">
+                                        <input class="form-check-input" type="checkbox" name="enable_wfs" value="1" {{ $geo->enable_wfs ? 'checked' : '' }} style="transform: scale(1.3);">
+                                    </div>
+                                </li>
+                                <li class="list-group-item d-flex justify-content-between align-items-center bg-light ps-0">
+                                    <div>
+                                        <span class="fw-bold d-block"><i class="mdi mdi-image-filter-hdr me-1 text-success"></i> Enable WMTS</span>
+                                        <small class="text-muted">Gunakan GeoWebCache untuk loading raster cepat.</small>
+                                    </div>
+                                    <div class="form-check form-switch mb-0">
+                                        <input class="form-check-input" type="checkbox" name="enable_wmts" value="1" {{ $geo->enable_wmts ? 'checked' : '' }} style="transform: scale(1.3);">
+                                    </div>
+                                </li>
+                                <li class="list-group-item d-flex justify-content-between align-items-center bg-success bg-opacity-10 ps-2 rounded mt-2">
+                                    <div>
+                                        <span class="fw-bold d-block text-success"><i class="mdi mdi-power me-1"></i> STATUS DEFAULT PETA</span>
+                                        <small class="text-dark">Apakah layer langsung tampil saat peta dibuka?</small>
+                                    </div>
+                                    <div class="form-check form-switch mb-0">
+                                        <input class="form-check-input" type="checkbox" name="is_active" value="1" {{ $geo->is_active ? 'checked' : '' }} style="transform: scale(1.4);">
+                                    </div>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+
+                </div>
+                <div class="modal-footer bg-light border-top-0">
+                    <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Batal</button>
+                    <button type="submit" class="btn btn-info btn-sm text-white">Simpan Perubahan</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+@endforeach
+
+{{-- MODAL CESIUM SELF HOSTED --}}
 
 <div class="modal fade" id="modalTambahSelf" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-lg">
@@ -1199,6 +1269,8 @@
 </div>
 @endforeach
 
+{{-- MODAL CESIUM ION --}}
+
 <div class="modal fade" id="modalTambahIon" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog">
         <form action="{{ route('cesium-ion.store') }}" method="POST">
@@ -1266,57 +1338,6 @@
                 <div class="modal-footer bg-light border-top-0">
                     <button type="submit" class="btn btn-secondary btn-sm text-white"><i class="mdi mdi-content-save"></i> Update Data</button>
                 </div>
-            </div>
-        </form>
-    </div>
-</div>
-@endforeach
-
-@foreach($jalans as $jalan)
-<div class="modal fade" id="modalEditJalan{{ $jalan->id }}" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-lg text-start">
-        <form action="{{ route('jalan-kw.update', $jalan->id) }}" method="POST" enctype="multipart/form-data">
-            @csrf @method('PUT')
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Edit Jaringan Jalan</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    <div class="row g-2">
-                        <div class="col-md-12 mb-2"><label class="small fw-bold">Nama Jalan *</label><input type="text" name="nama" class="form-control" value="{{ $jalan->nama }}" required></div>
-
-                        <div class="col-md-3 mb-2"><label class="small fw-bold">Panjang (m)</label><input type="number" step="any" name="panjang" class="form-control" value="{{ $jalan->panjang }}"></div>
-                        <div class="col-md-3 mb-2"><label class="small fw-bold">Lebar (m)</label><input type="number" step="any" name="lebar" class="form-control" value="{{ $jalan->lebar }}"></div>
-                        <div class="col-md-3 mb-2"><label class="small fw-bold">Luas</label><input type="number" step="any" name="luas" class="form-control" value="{{ $jalan->luas }}"></div>
-                        <div class="col-md-3 mb-2"><label class="small fw-bold">Aset Tanah (Rp)</label><input type="number" step="any" name="aset_tanah" class="form-control" value="{{ $jalan->aset_tanah }}"></div>
-
-                        <div class="col-md-4 mb-2"><label class="small fw-bold">Kondisi</label><input type="text" name="kondisi" class="form-control" value="{{ $jalan->kondisi }}"></div>
-                        <div class="col-md-4 mb-2"><label class="small fw-bold">Kewenangan</label><input type="text" name="kewenangan" class="form-control" value="{{ $jalan->kewenangan }}"></div>
-                        <div class="col-md-4 mb-2"><label class="small fw-bold">Status</label><input type="text" name="status" class="form-control" value="{{ $jalan->status }}"></div>
-
-                        <div class="col-md-4 mb-2"><label class="small fw-bold">Rata2 NJOP (Rp)</label><input type="number" step="any" name="rer_njop" class="form-control" value="{{ $jalan->rer_njop }}"></div>
-                        <div class="col-md-4 mb-2"><label class="small fw-bold">Asal</label><input type="text" name="asal" class="form-control" value="{{ $jalan->asal }}"></div>
-                        <div class="col-md-4 mb-2"><label class="small fw-bold">Layer Group</label><input type="text" name="layer" class="form-control" value="{{ $jalan->layer }}"></div>
-
-                        <div class="col-md-6 mb-2">
-                            <label class="small fw-bold">Ganti Foto Awal</label>
-                            <input type="file" name="foto_awal" class="form-control" accept="image/*">
-                            @if($jalan->foto_awal) <small class="text-success d-block mt-1"><i class="mdi mdi-check"></i> File ada: {{ basename($jalan->foto_awal) }}</small> @endif
-                        </div>
-                        <div class="col-md-6 mb-2">
-                            <label class="small fw-bold">Ganti Foto Akhir</label>
-                            <input type="file" name="foto_akhir" class="form-control" accept="image/*">
-                            @if($jalan->foto_akhir) <small class="text-success d-block mt-1"><i class="mdi mdi-check"></i> File ada: {{ basename($jalan->foto_akhir) }}</small> @endif
-                        </div>
-
-                        <div class="col-md-12 mb-2">
-                            <label class="small fw-bold">GeoJSON Geometry *</label>
-                            <textarea name="geom" class="form-control font-monospace" rows="4" required>{{ $jalan->geom_json }}</textarea>
-                        </div>
-                    </div>
-                </div>
-                <div class="modal-footer"><button type="submit" class="btn btn-primary btn-sm text-white">Update Data</button></div>
             </div>
         </form>
     </div>
